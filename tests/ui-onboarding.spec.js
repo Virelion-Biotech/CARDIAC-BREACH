@@ -1,40 +1,109 @@
 const {test,expect}=require('@playwright/test');
 
+async function boot(page,viewport){
+  if(viewport)await page.setViewportSize(viewport);
+  await page.goto('/');
+  await page.waitForSelector('#beginnerGuide');
+  await expect(page.locator('#beginnerGuide')).toBeVisible();
+}
+
+async function hitTest(page,selector){
+  return page.evaluate(selector=>{
+    const target=document.querySelector(selector);
+    if(!target)return null;
+    const r=target.getBoundingClientRect();
+    const x=Math.max(0,Math.min(innerWidth-1,Math.round(r.left+r.width/2)));
+    const y=Math.max(0,Math.min(innerHeight-1,Math.round(r.top+r.height/2)));
+    const hit=document.elementFromPoint(x,y);
+    return {ok:!!hit&&(hit===target||target.contains(hit)),hitId:hit?.id||'',hitTag:hit?.tagName||''};
+  },selector);
+}
+
 test.describe('single-layer onboarding',()=>{
-  test('first load has no duplicate blocking coaches',async({page})=>{
-    await page.goto('/');
-    await page.waitForTimeout(300);
+  test('first load has one onboarding layer and no duplicate blockers',async({page})=>{
+    await boot(page);
     const layers=await page.evaluate(()=>({
       beginner:!!document.querySelector('#beginnerGuide'),
       quickStart:!!document.querySelector('#cbStart'),
       oldCoach:!!document.querySelector('#cbCoach'),
       crisis:document.querySelector('#crisisLayer')?.classList.contains('show')||false,
+      final:document.querySelector('#finalOverlay')?.classList.contains('show')||false,
+      guideState:document.documentElement.dataset.beginnerGuide,
+      coordinator:!!window.CB_UI_COORDINATOR,
     }));
     expect(layers.beginner).toBe(true);
     expect(layers.quickStart).toBe(false);
     expect(layers.oldCoach).toBe(false);
     expect(layers.crisis).toBe(false);
+    expect(layers.final).toBe(false);
+    expect(layers.guideState).toBe('open');
+    expect(layers.coordinator).toBe(true);
   });
 
-  test('step 1 highlights NEW RUN without covering it',async({page})=>{
-    await page.goto('/');
-    await page.waitForSelector('#beginnerGuide');
+  test('NEW RUN is visually clear and actually clickable',async({page})=>{
+    await boot(page,{width:1280,height:720});
+    await expect(page.locator('#newRun')).toBeVisible();
     const geometry=await page.evaluate(()=>{
       const card=document.querySelector('.bg-card').getBoundingClientRect();
       const target=document.querySelector('#newRun').getBoundingClientRect();
-      const overlap=!(card.right<target.left||card.left>target.right||card.bottom<target.top||card.top>target.bottom);
-      return {overlap,target:{x:target.left+target.width/2,y:target.top+target.height/2}};
+      const overlap=!(card.right<=target.left||card.left>=target.right||card.bottom<=target.top||card.top>=target.bottom);
+      return {overlap,card,target};
     });
     expect(geometry.overlap).toBe(false);
+    expect(await hitTest(page,'#newRun')).toMatchObject({ok:true});
+    await page.getByRole('button',{name:'NEW RUN'}).click();
+    await expect(page.locator('#day')).toHaveText('0');
+  });
+
+  test('mobile onboarding also keeps the highlighted target reachable',async({page})=>{
+    await boot(page,{width:390,height:844});
+    for(let i=0;i<3;i++){
+      const target=await page.locator('.bg-pulse').getAttribute('id');
+      expect(target).toBeTruthy();
+      const result=await hitTest(page,`#${target}`);
+      expect(result?.ok).toBe(true);
+      await page.locator('#bgNext').click();
+    }
+  });
+
+  test('coordinator suppresses recreated overlays while guide is open',async({page})=>{
+    await boot(page);
+    const state=await page.evaluate(()=>{
+      const crisis=document.querySelector('#crisisLayer');
+      const final=document.querySelector('#finalOverlay');
+      crisis?.classList.add('show');
+      final?.classList.add('show');
+      document.documentElement.dispatchEvent(new Event('ui-test-mutation'));
+      return {crisis:crisis?.classList.contains('show'),final:final?.classList.contains('show')};
+    });
+    await page.waitForTimeout(50);
+    const after=await page.evaluate(()=>({
+      crisis:document.querySelector('#crisisLayer')?.classList.contains('show')||false,
+      final:document.querySelector('#finalOverlay')?.classList.contains('show')||false,
+      guide:document.documentElement.dataset.beginnerGuide,
+    }));
+    expect(state.crisis).toBe(true);
+    expect(state.final).toBe(true);
+    expect(after.crisis).toBe(false);
+    expect(after.final).toBe(false);
+    expect(after.guide).toBe('open');
   });
 
   test('HOW TO PLAY opens the same single coach',async({page})=>{
-    await page.goto('/');
-    await page.waitForSelector('#beginnerGuide');
+    await boot(page);
     await page.locator('#bgSkip').click();
     await page.getByRole('button',{name:'HOW TO PLAY'}).first().click();
     await expect(page.locator('#beginnerGuide')).toBeVisible();
     expect(await page.locator('#cbStart').count()).toBe(0);
     expect(await page.locator('#cbCoach').count()).toBe(0);
+  });
+
+  test('closing onboarding restores the normal UI state',async({page})=>{
+    await boot(page);
+    await page.locator('#bgSkip').click();
+    await expect(page.locator('#beginnerGuide')).toHaveCount(0);
+    const state=await page.evaluate(()=>({guide:document.documentElement.dataset.beginnerGuide,body:document.body.classList.contains('beginner-active')}));
+    expect(state.guide).toBe('closed');
+    expect(state.body).toBe(false);
   });
 });
