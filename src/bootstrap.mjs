@@ -1,11 +1,13 @@
 import {CardiacAppController} from './app/controller.mjs';
 import {createGamePort} from './core/game-port.mjs';
+import {installAccessibility} from './runtime/accessibility.mjs';
 
 const mount=()=>{
   const legacyEngine=window.CBMechanisticGameEngine;
   const physiology=window.CBPhysiology;
   if(!legacyEngine)throw new Error('Authoritative game engine did not load before bootstrap');
   if(!physiology)throw new Error('Physiology kernel did not load before bootstrap');
+  installAccessibility(document);
   const engine=createGamePort(legacyEngine);
   const app=new CardiacAppController({engine,physiology});
   app.mount();
