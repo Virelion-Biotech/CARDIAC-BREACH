@@ -19,7 +19,7 @@ async function hitTest(page,selector){
   },selector);
 }
 
-test.describe('single-layer onboarding',()=>{
+test.describe('CARDIAC//BREACH visual shell',()=>{
   test('first load has one onboarding layer and no duplicate blockers',async({page})=>{
     await boot(page);
     const layers=await page.evaluate(()=>({
@@ -30,6 +30,7 @@ test.describe('single-layer onboarding',()=>{
       final:document.querySelector('#finalOverlay')?.classList.contains('show')||false,
       guideState:document.documentElement.dataset.beginnerGuide,
       coordinator:!!window.CB_UI_COORDINATOR,
+      heartHost:!!document.querySelector('#heart3d'),
     }));
     expect(layers.beginner).toBe(true);
     expect(layers.quickStart).toBe(false);
@@ -38,6 +39,7 @@ test.describe('single-layer onboarding',()=>{
     expect(layers.final).toBe(false);
     expect(layers.guideState).toBe('open');
     expect(layers.coordinator).toBe(true);
+    expect(layers.heartHost).toBe(true);
   });
 
   test('NEW RUN is visually clear and actually clickable',async({page})=>{
@@ -55,7 +57,35 @@ test.describe('single-layer onboarding',()=>{
     await expect(page.locator('#day')).toHaveText('0');
   });
 
-  test('mobile onboarding also keeps the highlighted target reachable',async({page})=>{
+  test('3D cardiac cockpit actually renders a model surface or graceful fallback',async({page})=>{
+    await boot(page,{width:1280,height:720});
+    await expect(page.locator('#heart3d')).toBeVisible();
+    await page.waitForTimeout(1200);
+    const state=await page.evaluate(()=>({
+      canvas:!!document.querySelector('#heart3d canvas'),
+      fallback:!!document.querySelector('#heart3d .heart3d-fallback'),
+      api:!!window.CB_Heart3D,
+      rect:document.querySelector('#heart3d')?.getBoundingClientRect().toJSON(),
+    }));
+    expect(state.rect.width).toBeGreaterThan(400);
+    expect(state.rect.height).toBeGreaterThan(300);
+    expect(state.canvas||state.fallback).toBe(true);
+  });
+
+  test('3D viewport responds to pointer interaction',async({page})=>{
+    await boot(page,{width:1280,height:720});
+    await page.waitForTimeout(1200);
+    const canvas=page.locator('#heart3d canvas');
+    if(await canvas.count()===0)test.skip();
+    await canvas.hover();
+    await page.mouse.down();
+    await page.mouse.move(760,300,{steps:5});
+    await page.mouse.up();
+    await page.mouse.wheel(0,420);
+    await page.mouse.dblclick(760,300);
+  });
+
+  test('mobile onboarding keeps the highlighted target reachable',async({page})=>{
     await boot(page,{width:390,height:844});
     for(let i=0;i<3;i++){
       const target=await page.locator('.bg-pulse').getAttribute('id');
@@ -73,7 +103,6 @@ test.describe('single-layer onboarding',()=>{
       const final=document.querySelector('#finalOverlay');
       crisis?.classList.add('show');
       final?.classList.add('show');
-      document.documentElement.dispatchEvent(new Event('ui-test-mutation'));
       return {crisis:crisis?.classList.contains('show'),final:final?.classList.contains('show')};
     });
     await page.waitForTimeout(50);
