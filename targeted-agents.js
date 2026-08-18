@@ -1,54 +1,22 @@
-/* CARDIAC//BREACH — beginner-friendly spatial agent placement */
+/* CARDIAC//BREACH — spatial intervention bridge
+ * Uses CBCompat when available; no timing-based initialization.
+ */
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id);
- function marker(){
-  if($('targetedAgentLegend'))return;
-  const host=document.querySelector('.tissue-panel');if(!host)return;
-  const el=document.createElement('div');el.id='targetedAgentLegend';el.innerHTML='<span>PLACED AGENTS</span><b id="placedAgentCount">0</b><small>Agents are assigned to the selected cell/region. The cell gets an ACTIVE marker immediately; the actual tissue effect is applied when you advance the day.</small>';
-  host.appendChild(el);
- }
- function wrapDeploy(){
-  const original=window.deploy;if(!original||original.__targeted)return;
-  const wrapped=function(id,name=null){
-   const target=typeof window.selected==='number'?window.selected:0;
-   const before=(window.agents||[]).length;
-   original(id,name);
-   if((window.agents||[]).length>before){
-    const a=window.agents[window.agents.length-1],c=window.cells?.[target];
-    a.targetCell=target;a.targetX=c?.x||0;a.targetY=c?.y||0;a.placementLabel=`Region ${target+1}`;
-    if(c){c.agentPresence=(c.agentPresence||0)+1;c.agentPulseUntil=Date.now()+1600;}
-    window.log?.(`${a.name} placed on Region ${target+1}. The cell is now under active support.`);
-    window.CB_Audio?.deploy?.();
-    renderPlacement();window.draw?.();window.updateUI?.();
-   }
-  };
-  wrapped.__targeted=true;window.deploy=wrapped;
- }
- function renderPlacement(){
-  marker();const count=$('placedAgentCount');if(count)count.textContent=(window.agents||[]).filter(a=>a.targetCell!==undefined).length;
-  let el=$('placedAgents');if(!el){el=document.createElement('div');el.id='placedAgents';document.querySelector('.tissue-panel')?.appendChild(el)}
-  const agents=(window.agents||[]).filter(a=>a.targetCell!==undefined);el.innerHTML=agents.map(a=>`<span><b>${a.name}</b> · R${a.targetCell+1}</span>`).join('');
- }
- function applyLocalEffects(){
-  const cs=window.cells||[];for(const a of (window.agents||[])){
-   if(a.targetCell===undefined)continue;const c=cs[a.targetCell];if(!c)continue;const id=a.id;
-   if(id==='stabilizer'){c.stress=Math.max(0,c.stress-2.8);c.damage=Math.max(0,c.damage-1.5)}
-   else if(id==='regenerator'){c.damage=Math.max(0,c.damage-2);c.energy=Math.min(100,c.energy+1)}
-   else if(id==='immune'){c.stress=Math.max(0,c.stress-1.2)}
-   else if(id==='vascular'){c.oxygen=Math.min(100,c.oxygen+3);c.energy=Math.min(100,c.energy+.6)}
-   else if(id==='maturation'){c.mature=Math.min(100,c.mature+2.2)}
-   else if(id==='electrical'){c.stress=Math.max(0,c.stress-.9);c.damage=Math.max(0,c.damage-.35)}
-  }
- }
- function drawPlacementOverlay(){
-  const cv=$('tissue');if(!cv||!window.cells?.length)return;const cctx=cv.getContext('2d'),cw=cv.width/18,ch=cv.height/12;
-  (window.agents||[]).filter(a=>a.targetCell!==undefined).forEach(a=>{const c=window.cells[a.targetCell];if(!c)return;const x=c.x*cw+cw/2,y=c.y*ch+ch/2;
-   cctx.save();cctx.strokeStyle='#8ef0d0';cctx.lineWidth=2;cctx.shadowColor='#8ef0d0';cctx.shadowBlur=10;cctx.beginPath();cctx.arc(x,y,Math.min(cw,ch)*.25+Math.sin((window.anim||0)*.12)*2,0,Math.PI*2);cctx.stroke();cctx.shadowBlur=0;cctx.fillStyle='#d8f36a';cctx.font='700 10px system-ui';cctx.textAlign='center';cctx.fillText('ACTIVE',x,y-12);cctx.restore();
-  });
- }
- function wrapAdvance(){const original=window.advance;if(!original||original.__targetedAdvance)return;const wrapped=function(){const before=window.day||0;original();if((window.day||0)!==before){applyLocalEffects();window.CB_Audio?.heal?.();renderPlacement();window.draw?.();window.updateUI?.()}};wrapped.__targetedAdvance=true;window.advance=wrapped;}
- function wrapDraw(){const original=window.draw;if(!original||original.__targetedDraw)return;const wrapped=function(){original();drawPlacementOverlay()};wrapped.__targetedDraw=true;window.draw=wrapped;}
- function init(){marker();wrapDeploy();wrapAdvance();wrapDraw();renderPlacement()}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,220));else setTimeout(init,220);
+ const api=()=>window.CBCompat||{};
+ const cells=()=>api().cells||window.cells||[];
+ const agents=()=>api().agents||window.agents||[];
+ const selected=()=>Number.isInteger(api().selected)?api().selected:(Number.isInteger(window.CBApp?.selectedCell)?window.CBApp.selectedCell:0);
+ const day=()=>Number(api().day??window.day??0);
+ function marker(){if($('targetedAgentLegend')||!document.querySelector('.tissue-panel'))return;const el=document.createElement('div');el.id='targetedAgentLegend';el.innerHTML='<span>PLACED AGENTS</span><b id="placedAgentCount">0</b><small>Assigned to the selected cell. The active marker appears immediately; local response resolves at END TURN.</small>';document.querySelector('.tissue-panel').appendChild(el);}
+ function renderPlacement(){marker();const aa=agents().filter(a=>a&&a.targetCell!==undefined),count=$('placedAgentCount');if(count)count.textContent=aa.length;let list=$('placedAgents');if(!list){list=document.createElement('div');list.id='placedAgents';document.querySelector('.tissue-panel')?.appendChild(list);}list.innerHTML=aa.map(a=>`<span><b>${String(a.name||'INTERVENTION')}</b> · R${Number(a.targetCell)+1}</span>`).join('');}
+ function drawPlacementOverlay(){const cv=$('tissue'),cs=cells();if(!cv||!cs.length)return;const ctx=cv.getContext('2d'),cols=18,rows=12,cw=cv.width/cols,ch=cv.height/rows;agents().filter(a=>a&&a.targetCell!==undefined).forEach(a=>{const idx=Number(a.targetCell),c=cs[idx],x=(Number(c?.x??idx%cols)+.5)*cw,y=(Number(c?.y??Math.floor(idx/cols))+.5)*ch;ctx.save();ctx.strokeStyle='#d8f36a';ctx.lineWidth=2;ctx.shadowColor='#d8f36a';ctx.shadowBlur=12;ctx.beginPath();ctx.arc(x,y,Math.min(cw,ch)*.25+Math.sin(performance.now()*.006)*2,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='#d8f36a';ctx.font='800 9px system-ui';ctx.textAlign='center';ctx.fillText('ACTIVE',x,y-13);ctx.restore();});}
+ function wrapDeploy(){const original=window.deploy;if(typeof original!=='function'||original.__cbTargeted)return;function wrapped(id,name=null){const target=selected(),before=agents().length;original(id,name);const aa=agents();if(aa.length>before){const a=aa[aa.length-1],c=cells()[target];a.targetCell=target;a.targetX=Number(c?.x??target%18);a.targetY=Number(c?.y??Math.floor(target/18));a.placementLabel=`Region ${target+1}`;if(c){c.agentPresence=(c.agentPresence||0)+1;c.agentPulseUntil=Date.now()+1600;}window.log?.(`${a.name||'Intervention'} placed on Region ${target+1}.`);window.CB_Audio?.deploy?.();renderPlacement();window.draw?.();window.updateUI?.();}}wrapped.__cbTargeted=true;window.deploy=wrapped;}
+ function wrapAdvance(){const original=window.advance;if(typeof original!=='function'||original.__cbTargetedAdvance)return;function wrapped(){const before=day();original();if(day()!==before){renderPlacement();window.CB_Audio?.heal?.();window.draw?.();window.updateUI?.();}}wrapped.__cbTargetedAdvance=true;window.advance=wrapped;}
+ function wrapDraw(){const original=window.draw;if(typeof original!=='function'||original.__cbTargetedDraw)return;function wrapped(){original();drawPlacementOverlay();}wrapped.__cbTargetedDraw=true;window.draw=wrapped;}
+ function init(){marker();wrapDeploy();wrapAdvance();wrapDraw();renderPlacement();}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+ document.addEventListener('cardiac:app-ready',init,{once:false});
+ window.CB_TargetedAgents={renderPlacement};
 })();
