@@ -1,59 +1,56 @@
-/* CARDIAC//BREACH — interactive 3D cardiac model
- * Procedural model: no external asset required. Three.js is loaded lazily from a CDN.
- * Interactions: drag to orbit, wheel to zoom, click structures, pulse with game state.
+/* CARDIAC//BREACH — anatomical interactive heart viewer
+ * Uses the Human-Organ3D heart.glb at runtime instead of a procedural placeholder.
+ * The source project documents the heart as a realistic GLB with chambers/vessels and heartbeat animation.
  */
 (()=>{
 'use strict';
-const CDN='https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js';
+const THREE_URL='https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js';
+const GLTF_URL='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
+const HEART_URL='https://raw.githubusercontent.com/yihalem123/Human-Organ3D/main/models/heart.glb';
 const host=()=>document.getElementById('heart3d');
 let api=null;
-function fallback(){const el=host();if(!el)return;el.innerHTML='<div class="heart3d-fallback"><div class="fallback-heart">❤</div><div><b>3D CARDIAC MODEL</b><span>Interactive model unavailable — tactical simulation remains fully playable.</span></div></div>';}
-function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
-function loadScript(){return import(CDN);}
-function sphere(THREE,rx,ry,rz,mat){const g=new THREE.SphereGeometry(1,48,32);const m=new THREE.Mesh(g,mat);m.scale.set(rx,ry,rz);return m;}
-function tube(THREE,pts,radius,mat){const curve=new THREE.CatmullRomCurve3(pts);const g=new THREE.TubeGeometry(curve,32,radius,16,false);return new THREE.Mesh(g,mat);}
+function load(url){return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=url;s.onload=resolve;s.onerror=()=>reject(new Error(`Failed to load ${url}`));document.head.appendChild(s);});}
+function fallback(){const el=host();if(!el)return;el.innerHTML='<div class="heart3d-fallback"><div class="fallback-anatomy"><span></span><span></span><span></span></div><div><b>ANATOMICAL MODEL OFFLINE</b><span>The tactical simulation remains fully playable. Reconnect to load the high-resolution heart model.</span></div></div>';}
+function fitObject(THREE,obj){const box=new THREE.Box3().setFromObject(obj),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());obj.position.sub(center);const max=Math.max(size.x,size.y,size.z)||1;obj.scale.multiplyScalar(4.6/max);return obj;}
 async function init(){
  const el=host();if(!el)return;
  try{
-  const THREE=await loadScript();
-  const width=()=>Math.max(260,el.clientWidth||640),height=()=>Math.max(280,el.clientHeight||420);
-  const scene=new THREE.Scene();scene.background=new THREE.Color(0x071018);scene.fog=new THREE.Fog(0x071018,10,24);
-  const camera=new THREE.PerspectiveCamera(32,width()/height(),0.1,100);camera.position.set(.15,.15,8.3);
-  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(width(),height(),false);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.18;
-  el.innerHTML='';el.appendChild(renderer.domElement);renderer.domElement.setAttribute('aria-label','Interactive three dimensional cardiac model');
-  const root=new THREE.Group();root.rotation.set(-.10,.16,0);scene.add(root);
-  scene.add(new THREE.HemisphereLight(0x86c8ff,0x091014,2.1));const key=new THREE.DirectionalLight(0xffe4d2,3.5);key.position.set(4,6,8);scene.add(key);const rim=new THREE.PointLight(0x62f1d7,32,14);rim.position.set(-4,1,4);scene.add(rim);const accent=new THREE.PointLight(0xff5d71,18,12);accent.position.set(4,-2,3);scene.add(accent);
-  const heartMat=new THREE.MeshPhysicalMaterial({color:0x9b3046,roughness:.42,metalness:.02,clearcoat:.32,clearcoatRoughness:.2});
-  const muscleMat=new THREE.MeshPhysicalMaterial({color:0xc24f68,roughness:.56,metalness:.02,clearcoat:.18});
-  const vesselMat=new THREE.MeshPhysicalMaterial({color:0xb7c3cc,roughness:.32,metalness:.2,clearcoat:.25});
-  const cyanMat=new THREE.MeshBasicMaterial({color:0x56e6d0});const darkMat=new THREE.MeshBasicMaterial({color:0x0a1117,transparent:true,opacity:.5,wireframe:true});
-  const structure=new THREE.Group();root.add(structure);
-  const left=sphere(THREE,1.65,2.0,1.25,muscleMat);left.position.set(-.68,.28,0);left.rotation.z=-.17;
-  const right=sphere(THREE,1.5,1.75,1.18,heartMat);right.position.set(.73,.42,.05);right.rotation.z=.16;
-  const apex=sphere(THREE,1.18,1.58,1.0,heartMat);apex.position.set(.02,-1.2,-.02);apex.rotation.z=.08;
-  const septum=sphere(THREE,.68,1.34,1.16,new THREE.MeshPhysicalMaterial({color:0x7d2639,roughness:.5}));septum.position.set(.02,.1,.25);[left,right,apex,septum].forEach(m=>structure.add(m));
-  const aorta=tube(THREE,[new THREE.Vector3(.15,1.48,.15),new THREE.Vector3(.25,2.18,.26),new THREE.Vector3(.62,2.78,.3),new THREE.Vector3(1.22,2.8,.15)],.27,vesselMat);aorta.rotation.z=-.08;structure.add(aorta);
-  const pulmonary=tube(THREE,[new THREE.Vector3(-.18,1.52,.12),new THREE.Vector3(-.45,2.0,.18),new THREE.Vector3(-1.16,2.24,.1),new THREE.Vector3(-1.72,2.05,.03)],.23,vesselMat);structure.add(pulmonary);
-  const svc=tube(THREE,[new THREE.Vector3(1.0,1.75,.2),new THREE.Vector3(1.0,2.88,.18),new THREE.Vector3(.9,3.45,.1)],.22,vesselMat);structure.add(svc);
-  const ivc=tube(THREE,[new THREE.Vector3(1.0,-.18,.2),new THREE.Vector3(1.16,-1.1,.18),new THREE.Vector3(1.38,-1.82,.12)],.21,vesselMat);structure.add(ivc);
-  const coronary=tube(THREE,[new THREE.Vector3(-1.36,.45,1.0),new THREE.Vector3(-.78,.05,1.18),new THREE.Vector3(-.1,-.36,1.24),new THREE.Vector3(.73,-.68,1.1),new THREE.Vector3(1.25,-.54,.94)],.052,cyanMat);structure.add(coronary);
-  const coronary2=tube(THREE,[new THREE.Vector3(-.54,1.04,1.08),new THREE.Vector3(-.24,.46,1.28),new THREE.Vector3(.05,-.02,1.34),new THREE.Vector3(.26,-.72,1.22)],.046,cyanMat);structure.add(coronary2);
-  const shell=sphere(THREE,1.98,2.35,1.48,darkMat);shell.position.set(0,.18,0);root.add(shell);
-  const labels=new THREE.Group();root.add(labels);
-  function label(text,color='white',small=false){const c=document.createElement('canvas');c.width=small?256:384;c.height=72;const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.font=`800 ${small?22:28}px Inter,Arial,sans-serif`;x.fillStyle=color;x.fillText(text,8,40);const tx=new THREE.CanvasTexture(c);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true,depthWrite:false}));sp.scale.set(small?1.55:2.1,.44,1);return sp;}
-  const lab=label('CARDIAC CORE','#d9ff62');lab.position.set(-2.7,3.15,0);labels.add(lab);const mode=label('LIVE MODEL','#67ead7',true);mode.position.set(2.0,-2.9,0);labels.add(mode);
-  const hotspot=sphere(THREE,.20,.20,.20,new THREE.MeshBasicMaterial({color:0xff5d71,transparent:true,opacity:1}));hotspot.position.set(0,-.1,1.34);structure.add(hotspot);const ring=new THREE.Mesh(new THREE.TorusGeometry(.34,.035,10,48),new THREE.MeshBasicMaterial({color:0xd9ff62,transparent:true,opacity:.9}));ring.position.copy(hotspot.position);ring.rotation.x=Math.PI/2;structure.add(ring);
-  let dragging=false,lastX=0,lastY=0,zoom=1,hovered=null;const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();const pickables=[left,right,apex,septum,aorta,pulmonary];
+  if(!window.THREE)await load(THREE_URL);
+  if(!THREE.GLTFLoader)await load(GLTF_URL);
+  const W=()=>Math.max(300,el.clientWidth||720),H=()=>Math.max(320,el.clientHeight||520);
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0x080a0d);
+  const camera=new THREE.PerspectiveCamera(24,W()/H(),.01,100);camera.position.set(0,.15,7.8);
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));renderer.setSize(W(),H(),false);renderer.setClearColor(0x080a0d,1);renderer.gammaOutput=true;renderer.gammaFactor=2.2;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  el.innerHTML='';el.appendChild(renderer.domElement);renderer.domElement.setAttribute('aria-label','Interactive realistic anatomical heart model');renderer.domElement.style.touchAction='none';
+  const hemi=new THREE.HemisphereLight(0xdce7ef,0x090b0e,1.7);scene.add(hemi);
+  const key=new THREE.DirectionalLight(0xffe1cf,4.2);key.position.set(4,6,7);key.castShadow=true;scene.add(key);
+  const fill=new THREE.DirectionalLight(0x89b8ff,1.2);fill.position.set(-5,2,4);scene.add(fill);
+  const rim=new THREE.PointLight(0x50d9ca,8,10);rim.position.set(-4,0,3);scene.add(rim);
+  const group=new THREE.Group();scene.add(group);
+  const loader=new THREE.GLTFLoader();
+  const gltf=await new Promise((resolve,reject)=>loader.load(HEART_URL,resolve,undefined,reject));
+  const model=fitObject(THREE,gltf.scene||gltf.scenes?.[0]);
+  group.add(model);
+  const box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3());
+  camera.position.z=Math.max(5.6,Math.max(size.x,size.y,size.z)*1.65);
+  model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.side=THREE.DoubleSide;o.material.needsUpdate=true;}}});
+  let mixer=null;if(gltf.animations?.length){mixer=new THREE.AnimationMixer(model);gltf.animations.forEach(clip=>mixer.clipAction(clip).play());}
+  const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();let dragging=false,lastX=0,lastY=0,downTime=0;
   function point(e){const r=renderer.domElement.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;}
-  renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture?.(e.pointerId);});
-  renderer.domElement.addEventListener('pointerup',e=>{dragging=false;point(e);ray.setFromCamera(pointer,camera);const hit=ray.intersectObjects(pickables,false)[0];if(hit){const names=new Map([[left,'LEFT VENTRICLE'],[right,'RIGHT VENTRICLE'],[apex,'APEX / MYOCARDIUM'],[septum,'SEPTUM'],[aorta,'AORTA'],[pulmonary,'PULMONARY ARTERY']]);const name=names.get(hit.object)||'CARDIAC STRUCTURE';window.CB_BeginnerGuide?.flash?.(`${name} selected`);document.dispatchEvent(new CustomEvent('cardiac3d:select',{detail:{name}}));}});
-  renderer.domElement.addEventListener('pointermove',e=>{if(dragging){root.rotation.y+=(e.clientX-lastX)*.008;root.rotation.x=clamp(root.rotation.x+(e.clientY-lastY)*.005,-.75,.5);lastX=e.clientX;lastY=e.clientY;}else{point(e);ray.setFromCamera(pointer,camera);const hit=ray.intersectObjects(pickables,false)[0];if(hit!==hovered){hovered=hit?.object||null;renderer.domElement.style.cursor=hovered?'pointer':'grab';}}});
-  renderer.domElement.addEventListener('pointerleave',()=>dragging=false);renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();zoom=clamp(zoom+e.deltaY*.0012,.72,1.32);},{passive:false});renderer.domElement.addEventListener('dblclick',()=>{root.rotation.set(-.1,.16,0);zoom=1;});
-  function resize(){const w=width(),h=height();camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);}new ResizeObserver(resize).observe(el);
-  let t=0;function animate(){requestAnimationFrame(animate);t+=.018;const pulse=1+Math.sin(t*4.2)*.025;structure.scale.setScalar(pulse);ring.scale.setScalar(1+.10*Math.sin(t*4.2));hotspot.material.opacity=.65+.35*Math.sin(t*4.2);root.rotation.y+=.0018;camera.position.z=8.3/zoom;camera.lookAt(0,.2,0);renderer.render(scene,camera);}animate();
-  api={scene,root,hotspot,ring,renderer,setStress(v){accent.intensity=12+v*30;hotspot.material.color.set(v>.65?0xff5d71:0xd9ff62);}};window.CB_Heart3D=api;
-  document.addEventListener('cardiac:heart-state',e=>api.setStress(clamp(Number(e.detail?.severity||0),0,1)));
- }catch(err){console.warn('CARDIAC//BREACH 3D model unavailable',err);fallback();}
+  renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;downTime=performance.now();lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture?.(e.pointerId);});
+  renderer.domElement.addEventListener('pointermove',e=>{if(!dragging)return;group.rotation.y+=(e.clientX-lastX)*.006;group.rotation.x=Math.max(-.55,Math.min(.55,group.rotation.x+(e.clientY-lastY)*.004));lastX=e.clientX;lastY=e.clientY;});
+  renderer.domElement.addEventListener('pointerup',e=>{dragging=false;if(performance.now()-downTime>350)return;point(e);ray.setFromCamera(pointer,camera);const hit=ray.intersectObject(model,true)[0];if(!hit)return;let obj=hit.object;while(obj&&obj.parent&&obj.parent!==model)obj=obj.parent;const raw=(hit.object.name||obj?.name||'CARDIAC STRUCTURE').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim();const name=raw||'CARDIAC STRUCTURE';document.dispatchEvent(new CustomEvent('cardiac3d:select',{detail:{name}}));window.CB_BeginnerGuide?.flash?.(`${name.toUpperCase()} selected`);});
+  renderer.domElement.addEventListener('pointerleave',()=>{dragging=false;});
+  renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();camera.position.z=Math.max(3.8,Math.min(12,camera.position.z+e.deltaY*.004));},{passive:false});
+  renderer.domElement.addEventListener('dblclick',()=>{group.rotation.set(0,.15,0);camera.position.z=Math.max(5.6,Math.max(size.x,size.y,size.z)*1.65);});
+  const clock=new THREE.Clock();
+  function resize(){const w=W(),h=H();camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);}
+  new ResizeObserver(resize).observe(el);
+  api={scene,model,group,renderer,setStress(v){rim.intensity=4+Math.max(0,Math.min(1,v))*14;}};window.CB_Heart3D=api;
+  document.addEventListener('cardiac:heart-state',e=>api.setStress(Number(e.detail?.severity)||0));
+  function frame(){requestAnimationFrame(frame);const dt=Math.min(clock.getDelta(),.05);if(mixer)mixer.update(dt);else model.scale.setScalar(1+Math.sin(performance.now()*.0036)*.012);renderer.render(scene,camera);}frame();
+ }catch(err){console.warn('Anatomical heart model unavailable',err);fallback();}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
