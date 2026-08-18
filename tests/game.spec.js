@@ -37,7 +37,7 @@ test.describe('CARDIAC//BREACH game-state invariants',()=>{
     await runDays(page,24);
     await expect(page.locator('#day')).toHaveText('24');
     const values=await page.evaluate(()=>({state:{...state},energy,history:history.length,alive:cells.filter(c=>c.alive).length}));
-    for(const value of Object.values(values.state))expect(value).toBeGreaterThanOrEqual(0),expect(value).toBeLessThanOrEqual(100);
+    for(const value of Object.values(values.state)){expect(value).toBeGreaterThanOrEqual(0);expect(value).toBeLessThanOrEqual(100)}
     expect(values.energy).toBeGreaterThanOrEqual(0);expect(values.energy).toBeLessThanOrEqual(100);expect(values.history).toBe(24);expect(values.alive).toBeGreaterThanOrEqual(0);
     await expect(page.locator('#log')).toContainText('RUN COMPLETE');
   });
@@ -92,7 +92,7 @@ test.describe('agent balance matrix',()=>{
     for(const scenario of SCENARIOS){
       const rows=AGENTS.map(a=>({agent:a,...matrix[scenario][a]})).sort((a,b)=>b.score-a.score);
       wins[rows[0].agent]++;
-      const positive=rows.filter(r=>r.delta>=1).map(r=>r.agent);positive.forEach(a=>{niches[a]=true});
+      rows.filter(r=>r.delta>=1).forEach(r=>{niches[r.agent]=true});
       expect(rows[0].score-rows[1].score,'top agent should not create a runaway gap').toBeLessThanOrEqual(15);
     }
     for(const agent of AGENTS)expect(niches[agent],`${agent} should have at least one useful scenario`).toBeTruthy();
@@ -101,14 +101,15 @@ test.describe('agent balance matrix',()=>{
   });
 
   test('duplicate stacking is not strictly better than a diversified four-agent team',async({browser})=>{
-    const run=async(seed,ids)=>{
+    const run=async(seed,scenario,ids)=>{
       const context=await browser.newContext();const page=await context.newPage();await boot(page,seed);
+      await page.getByLabel('SCENARIO').selectOption(scenario);
       for(const id of ids)await page.locator('#agentList .agent').filter({hasText:id}).getByRole('button',{name:'DEPLOY'}).click();
       await runDays(page,24);const score=Number(await page.locator('#score').innerText());await context.close();return score;
     };
     for(const [scenario,seed] of [['ischemia',401],['inflammation',402],['fibrosis',403],['maturation',404],['arrhythmia',405]]){
-      const a=await browser.newContext();const p=await a.newPage();await boot(p,seed);await p.getByLabel('SCENARIO').selectOption(scenario);for(let i=0;i<4;i++)await p.locator('#agentList .agent').nth(i).getByRole('button',{name:'DEPLOY'}).click();await runDays(p);const diversified=Number(await p.locator('#score').innerText());await a.close();
-      const stacked=await run(seed+50,['REGENERATOR','REGENERATOR','REGENERATOR','REGENERATOR']);
+      const diversified=await run(seed,scenario,['STABILIZER','REGENERATOR','IMMUNE MODULATOR','VASCULAR SUPPORT']);
+      const stacked=await run(seed+50,scenario,['REGENERATOR','REGENERATOR','REGENERATOR','REGENERATOR']);
       expect(stacked-diversified).toBeLessThanOrEqual(10);
     }
   });
