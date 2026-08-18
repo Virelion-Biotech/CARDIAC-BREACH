@@ -1,18 +1,18 @@
-/* CARDIAC//BREACH — quarantined legacy compatibility
- * This is intentionally the ONLY place that mirrors game state for older UI modules.
- * New code must use window.CBApp instead.
+/* CARDIAC//BREACH — quarantined legacy compatibility boundary.
+ * This is the only bridge for old IIFE modules. New code uses CBApp directly.
+ * Lifecycle is event-driven; no timeout/race-based initialization.
  */
 (()=>{
   'use strict';
-  const install=()=>{
-    const app=window.CBApp;
-    if(!app) throw new Error('CBApp must initialize before legacy compatibility');
+  const install=(event)=>{
+    const app=event?.detail?.app||window.CBApp;
+    if(!app)return;
     const legacy=Object.create(null);
     const define=(key,getter,setter)=>Object.defineProperty(legacy,key,{enumerable:true,configurable:false,get:getter,set:setter});
     define('cells',()=>app.state?.cells||[]);
     define('selected',()=>app.selectedCell,(v)=>app.selectCell(Number(v)));
     define('day',()=>app.state?.day||0);
-    define('energy',()=>app.state?.state?.energy||0);
+    define('energy',()=>app.state?.energy ?? app.state?.state?.energy ?? 0);
     define('agents',()=>app.state?.agents||[]);
     define('history',()=>app.state?.history||[]);
     define('running',()=>app.state?.running||false);
@@ -26,6 +26,6 @@
     window.CBCompat=legacy;
     document.documentElement.dataset.compatReady='true';
   };
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install,{once:true});
-  else install();
+  document.documentElement.addEventListener('cardiac:app-ready',install,{once:true});
+  if(window.CBApp)install({detail:{app:window.CBApp}});
 })();
