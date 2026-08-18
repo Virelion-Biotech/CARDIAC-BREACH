@@ -1,46 +1,69 @@
 # CARDIAC//BREACH
 
-**A browser-based cardiac tissue strategy simulator with evolving, deployable synthetic agents.**
+**A browser-based cardiac tissue strategy game with a synthetic tissue simulator, evolving deployable agents, procedural crises, and campaign progression.**
 
-You are not controlling a single cell. You manage a dynamic tissue system while deploying a limited team of response agents. The simulation is intentionally synthetic and abstract: it is a game, not a biological intervention tool.
+You are not controlling a single cell. You manage a dynamic heterogeneous tissue system while deploying a limited response team. The simulation is intentionally synthetic and abstract: it is a game and educational experience, not a biological intervention tool.
 
-## v0.4 — Evolved Agents Become Playable
+## v0.9 — Full Strategy Game Layer
 
-The evolution system now changes gameplay rather than only producing statistics.
+CARDIAC//BREACH now wraps the tissue simulator in a complete player loop:
 
-### Agent lifecycle
+**Diagnose → Prioritize → Intervene → Observe → Adapt → Recover → Debrief → Evolve**
 
-**Seed → Evaluate → Evolve → Archive → Deploy → Run → Learn**
+### Campaign
 
-- Seed an eight-agent synthetic population.
-- Evaluate policies against game performance.
-- Select and mutate high-fitness candidates.
-- Archive individual candidates permanently for the current session.
-- Deploy archived candidates alongside the six fixed archetypes.
-- Evolved agents consume energy and count toward the five-agent deployment limit.
-- Their policy traits directly modify simulation outcomes.
-- Each deployed evolved agent tracks uses during a run.
+The game now progresses through themed chapters:
 
-### Evolved policy traits
+1. First Response
+2. The Cascade
+3. Remodeling
+4. Recovery
+5. Conduction
+6. Combined Breach
 
-Each policy has six abstract parameters:
+Successful runs advance the campaign and introduce progressively harder strategic contexts.
 
-- Stability
-- Recovery
-- Inflammation control
-- Perfusion
-- Maturation
-- Electrical safety
+### Spatial tactics
 
-An evolved policy can therefore become a specialized strategy rather than simply a higher-level copy of a fixed agent.
+The 18 × 12 field is now an active game board rather than only a visualization. Runs generate regional hotspots such as perfusion bottlenecks, inflammatory foci, fibrotic niches, electrical hotspots, recovery zones and vulnerable regions. Players can click directly on the tissue to inspect regions and receive confidence-weighted threat information.
 
-## v0.3 — Agent Evolution
+### Contextual decisions
 
-The Agent Evolution Lab uses selection, mutation, experience accumulation and generation tracking. Fitness is a game score rather than a biological objective.
+Selected days can generate a regional command decision with three different responses. Decisions trade energy, survival, function, oxygen, remodeling and electrical stability against one another. No single option is universally correct.
 
-## v0.2 — Tissue Dynamics
+### Procedural runs
 
-The game models a heterogeneous **18 × 12 tissue field (216 cells)** with:
+Regional threats, severity, confidence and run narrative vary between runs. Scenario-specific recommendations provide a beginner entry point without removing experimentation.
+
+### Explainability
+
+The **WHY IS THIS HAPPENING?** panel compares state movement between days and highlights the largest changes, helping players understand the synthetic game mechanics rather than memorize a fixed strategy.
+
+### Dynamic threat presentation
+
+The command HUD shows:
+
+- Current operation and goal
+- Active regional threat
+- Day / score / risk
+- Recommended opening team
+- Tactical feedback
+- Run narrative
+- Campaign state
+
+The interface changes emphasis as tissue risk rises.
+
+### Run debrief
+
+Completed runs receive a composite score covering tissue outcome, energy efficiency, regional control and adaptive decisions. The debrief summarizes the final tissue state, regional control, and any discovered evolved-agent specialization.
+
+### Agent discovery
+
+Evolved policies can be recognized as discovered strategic roles such as perfusion specialist, repair specialist, immune specialist, conduction specialist or adaptive specialist based on their traits and observed deployment context.
+
+### Existing simulation core
+
+The underlying synthetic model retains:
 
 - Cardiomyocytes
 - Fibroblasts
@@ -50,8 +73,7 @@ The game models a heterogeneous **18 × 12 tissue field (216 cells)** with:
 - Spatial neighbor interactions
 - Local injury propagation
 - Cell loss under severe combined stress/damage
-
-System state includes viability, function, inflammation, fibrosis, oxygen, electrical instability, metabolic reserve and intervention energy.
+- Viability, function, inflammation, fibrosis, oxygen, electrical instability and metabolic reserve
 
 ### Scenarios
 
@@ -72,21 +94,25 @@ System state includes viability, function, inflammation, fibrosis, oxygen, elect
 
 Up to five total agents can be deployed in a run, including evolved agents.
 
-### Run mechanics
+### Evolution lifecycle
 
-- 24 simulated days
-- Randomized initial tissue heterogeneity
-- Limited energy economy
-- Critical failure events
-- Region inspection
-- Neighbor sampling
-- Live trajectory chart
-- End-of-run score
-- Exportable JSON run record including evolved-agent archive
+**Seed → Evaluate → Evolve → Archive → Deploy → Run → Learn**
 
-## Next
+Evolved agents consume energy, count toward the deployment limit, and their abstract traits alter game outcomes.
 
-The next major layer is persistent progression: unlockable agent classes, permanent player research upgrades, procedural events, scenario modifiers, multi-run training, leaderboards and a dedicated agent-training sandbox.
+### Quality-of-life systems
+
+- Guided first-run instructions
+- Autosave and checkpoint restore
+- Pause and simulation-speed controls
+- Keyboard shortcuts
+- Scenario-specific recommendations
+- Risk radar
+- Challenge modifiers
+- Mission contracts
+- Achievements and career statistics
+- Exportable JSON run records
+- Responsive mobile layout
 
 ## Design principle
 
