@@ -1,0 +1,14 @@
+{
+  "name": "cardiac-breach",
+  "private": true,
+  "version": "0.7.0",
+  "description": "CARDIAC//BREACH synthetic cardiac tissue strategy simulator",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.0"
+  }
+}
