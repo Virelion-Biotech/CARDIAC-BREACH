@@ -1,18 +1,30 @@
-/* CARDIAC//BREACH v2 adapter — presentation bridge only. */
+/* CARDIAC//BREACH — v2 compatibility adapter
+ * Application lifecycle is owned by CBApp.
+ * This file is compatibility-only; new code consumes CBApp directly.
+ */
 (()=>{
-'use strict';
-const core=window.CBGameCoreV2;if(!core)return;let G=null;
-const $=id=>document.getElementById(id);
-function score(){return core.score(G)}
-function sync(){if(!G)return;window.cells=G.cells;window.selected=Number.isInteger(window.selected)?window.selected:0;window.day=G.day;window.energy=G.state.energy;window.agents=G.agents;window.history=G.history;window.running=G.running;window.state=G.state;window.CBGameState=G;document.body.dataset.commands=String(G.commandPoints);document.body.dataset.seed=String(G.seed);if($('day'))$('day').textContent=G.day;if($('energy'))$('energy').textContent=Math.round(G.state.energy);if($('score'))$('score').textContent=score();if($('agentCount'))$('agentCount').textContent=`${G.agents.length} / ${core.MAX_AGENTS} deployed`;renderObjectives()}
-function renderObjectives(){let el=$('coreObjectives');if(!el){el=document.createElement('div');el.id='coreObjectives';$('scenario')?.closest('.scenario-row')?.after(el)}const m=G.mission;el.innerHTML=`<div class="core-objective-main"><b>${m.title}</b><span>Primary pressure: ${m.focus.toUpperCase()}</span></div><div class="core-objective-list">${m.objectives.map(o=>`<span class="${o.status?'done':''}">${o.status?'✓':'○'} ${o.label}</span>`).join('')}</div><div class="core-cp"><b>${G.commandPoints}</b> COMMANDS</div>`}
-function overlay(){const cv=$('tissue');if(!cv||!G)return;const c=cv.getContext('2d'),cw=cv.width/core.W,ch=cv.height/core.H;c.save();for(const h of G.mission.hotspots){const cell=G.cells[h.cell];if(!cell||h.resolved)continue;const x=cell.x*cw+cw/2,y=cell.y*ch+ch/2,r=Math.min(cw,ch)*(.18+h.severity/250);c.strokeStyle=h.severity>72?'#ff7079':'#f2b55d';c.lineWidth=2;c.globalAlpha=.65;c.beginPath();c.arc(x,y,r+Math.sin((window.anim||0)*.09+h.id)*2,0,Math.PI*2);c.stroke();c.globalAlpha=1;c.fillStyle='#eef3f5';c.font='700 9px system-ui';c.textAlign='center';c.fillText(String(h.id),x,y+3)}for(const a of G.agents){const cell=G.cells[a.targetCell];if(!cell)continue;const x=cell.x*cw+cw/2,y=cell.y*ch+ch/2;c.strokeStyle='#d9f36a';c.lineWidth=2;c.beginPath();c.arc(x,y,Math.min(cw,ch)*.30,0,Math.PI*2);c.stroke();c.globalAlpha=.12;c.fillStyle='#d9f36a';c.beginPath();c.arc(x,y,Math.min(cw,ch)*a.range*.48,0,Math.PI*2);c.fill();c.globalAlpha=1}}
-function redraw(){window.CBGameLegacyDraw?.();overlay()}
-function resetV2(){const scenario=$('scenario')?.value||'ischemia';const seed=Number(localStorage.getItem('cb-seed-v2'))||Math.floor(Math.random()*4294967295);localStorage.setItem('cb-seed-v2',String(seed));G=core.createGame(seed,scenario);window.selected=0;sync();window.renderAgents?.();window.renderArchive?.();window.updateUI?.();redraw();window.renderChart?.();window.CB_Audio?.confirm?.()}
-function advanceV2(){if(!G){resetV2();return}const result=core.resolve(G);sync();window.log?.(`DAY ${G.day} — ${result.complete?'RUN RESOLVED':'TACTICAL STATE UPDATED'} · ${G.mission.title}.`,!!result.hardFail);window.updateUI?.();window.renderChart?.();redraw();if(result.complete)window.CB_Audio?.[result.win?'win':'fail']?.()}
-function deployV2(id,name=null){if(!G)resetV2();const target=Number.isInteger(window.selected)?window.selected:0;const out=core.place(G,id,target,name);if(!out.ok){window.log?.(out.reason,true);window.CB_Audio?.warning?.();return null}sync();window.log?.(`${out.agent.name} placed on Cell ${target+1} · RANGE ${out.agent.range} · 1 COMMAND.`,false);window.updateUI?.();redraw();window.CB_Audio?.deploy?.();return out.agent}
-window.CBGameV2={get:()=>G,reset:resetV2,advance:advanceV2,deploy:deployV2};window.reset=resetV2;window.advance=advanceV2;window.deploy=deployV2;
-// Rebind buttons after legacy modules have finished installing their handlers.
-function bind(){if(!G)resetV2();const n=$('newRun'),d=$('nextDay'),s=$('scenario');if(n)n.onclick=resetV2;if(d)d.onclick=advanceV2;if(s)s.onchange=resetV2;redraw()}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,520));else setTimeout(bind,520);
+  'use strict';
+  const install=()=>{
+    const app=window.CBApp;
+    const compat=window.CBCompat;
+    if(!app||!compat) throw new Error('CBApp and CBCompat must initialize before the compatibility adapter');
+
+    compat.reset=()=>app.newRun(document.getElementById('scenario')?.value||'ischemia');
+    compat.advance=()=>app.advanceDay();
+    compat.deploy=(id,name)=>app.deploy(id,name);
+    compat.selectCell=(index)=>app.selectCell(index);
+
+    window.CBGameV2={
+      get state(){return app.state},
+      reset:compat.reset,
+      advance:compat.advance,
+      deploy:compat.deploy,
+      selectCell:compat.selectCell,
+      save:()=>app.save(),
+      load:()=>app.load()
+    };
+  };
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install,{once:true});
+  else install();
 })();
