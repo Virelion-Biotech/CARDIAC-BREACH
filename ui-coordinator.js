@@ -98,7 +98,8 @@
     const target=document.querySelector(TARGET);
     if(!target)return;
     const r=rect(target);if(!r)return;
-    const x=Math.round(r.left+r.width/2),y=Math.round(r.top+r.height/2);
+    const x=Math.max(0,Math.min(innerWidth-1,Math.round(r.left+r.width/2)));
+    const y=Math.max(0,Math.min(innerHeight-1,Math.round(r.top+r.height/2)));
     const hit=document.elementFromPoint(x,y);
     if(!hit)return;
     if(hit===target||target.contains(hit))return;
@@ -112,8 +113,9 @@
   }
 
   function attach(){
+    // Do not observe style mutations: the coordinator itself changes coach styles.
     mutationObserver=new MutationObserver(schedule);
-    mutationObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden','aria-hidden']});
+    mutationObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});
 
     if(window.ResizeObserver){
       resizeObserver=new ResizeObserver(schedule);
