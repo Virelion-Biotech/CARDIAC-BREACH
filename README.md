@@ -1,16 +1,42 @@
 # CARDIAC//BREACH
 
-**A browser-based cardiac tissue strategy simulator.**
+**A browser-based cardiac tissue strategy simulator with an evolving synthetic-agent layer.**
 
-You are not controlling a single cell. You are managing a dynamic tissue system while deploying a limited team of autonomous response agents. The simulation is intentionally synthetic and abstract: it is a game, not a biological intervention tool.
+You are not controlling a single cell. You manage a dynamic tissue system while deploying a limited team of autonomous response agents. The simulation is intentionally synthetic and abstract: it is a game, not a biological intervention tool.
 
 ## Play
 
 Open `index.html` locally, or enable GitHub Pages for the repository. There is no build system, package manager, backend, or external dependency.
 
+## v0.3 — Agent Evolution
+
+The game now adds an **Agent Evolution Lab** on top of the tissue simulator.
+
+### Evolution loop
+
+1. Seed a population of eight synthetic agent policies.
+2. Evaluate policies against the current game outcome.
+3. Rank candidates by abstract fitness.
+4. Preserve an elite subset.
+5. Mutate elite policies into a new generation.
+6. Repeat across generations.
+7. Inspect candidate level, experience, fitness, and policy traits.
+8. Export the evolution state with the run record.
+
+The evolving traits are purely abstract game-policy parameters:
+
+- Stability
+- Recovery
+- Inflammation control
+- Perfusion
+- Maturation
+- Electrical safety
+
+The system uses selection, mutation, experience accumulation, and generation tracking. It does **not** encode real-world biological procedures.
+
 ## v0.2 — Tissue Dynamics
 
-The game now models a heterogeneous **18 × 12 tissue field (216 cells)** with distinct cell populations and spatial state.
+The game models a heterogeneous **18 × 12 tissue field (216 cells)** with distinct cell populations and spatial state.
 
 ### Tissue model
 
@@ -42,8 +68,6 @@ The game now models a heterogeneous **18 × 12 tissue field (216 cells)** with d
 - Maturation failure
 - Electrical instability
 
-Each scenario changes the system through a different abstract pressure profile.
-
 ### Agent Foundry
 
 Six response-agent archetypes are available:
@@ -71,11 +95,9 @@ Up to five agents can be deployed in a run. Agents have energy costs and differe
 
 ## Roadmap
 
-The next planned layer is a true **Agent Evolution system**: agents with internal policies, upgrade paths, learned performance statistics, procedural tissue events, scenario modifiers, and multi-run progression. A later version can add a training sandbox where agents compete across many synthetic episodes before deployment.
+Next: connect evolved policies to actual in-game agent modifiers, add persistent progression, procedural events, scenario modifiers, agent specialization and a multi-run training sandbox. Later versions can introduce more sophisticated learning while keeping the environment synthetic and non-operational.
 
 ## Design principle
-
-CARDIAC//BREACH is built around one rule:
 
 > **There is no universally optimal intervention.**
 
