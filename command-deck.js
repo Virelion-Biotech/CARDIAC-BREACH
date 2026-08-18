@@ -3,10 +3,9 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const num=id=>Number(String($(id)?.textContent||'0').replace(/[^0-9.-]/g,''))||0;
+window.CB_IMMERSIVE_UI=true;
 function installLegacyTheme(){
- if(!document.getElementById('cb-v43-style')){
-  const link=document.createElement('link');link.id='cb-v43-style';link.rel='stylesheet';link.href='ui-v43-force.css?v=43';document.head.appendChild(link);
- }
+ if(!document.getElementById('cb-v43-style')){const link=document.createElement('link');link.id='cb-v43-style';link.rel='stylesheet';link.href='ui-v43-force.css?v=43';document.head.appendChild(link);}
  document.body.classList.add('cb-v43');
  const small=document.querySelector('.topbar small');if(small)small.textContent=' MEDICAL ROGUELIKE · v5 / IMMERSIVE';
  const model=document.querySelector('.cockpit-foot div b');if(model)model.textContent='IMMERSIVE FIELD';
@@ -14,8 +13,7 @@ function installLegacyTheme(){
 function syncLegacyTelemetry(){
  const day=num('day'),score=num('score'),viability=num('viability'),inflammation=num('inflammation'),arrhythmia=num('arrhythmia');
  const heroDay=$('heroDay'),heroScore=$('heroScore'),heroThreat=$('heroThreat');
- if(heroDay)heroDay.textContent=`DAY ${day}`;
- if(heroScore)heroScore.textContent=score;
+ if(heroDay)heroDay.textContent=`DAY ${day}`;if(heroScore)heroScore.textContent=score;
  const threat=Math.max(0,Math.min(100,(100-viability)*.52+inflammation*.28+arrhythmia*.20));
  if(heroThreat){heroThreat.textContent=threat>=70?'CRITICAL':threat>=42?'ELEVATED':'LOW';heroThreat.dataset.level=threat>=70?'critical':threat>=42?'elevated':'low';}
  document.dispatchEvent(new CustomEvent('cardiac:heart-state',{detail:{severity:threat/100,day,score,viability,inflammation,arrhythmia}}));
