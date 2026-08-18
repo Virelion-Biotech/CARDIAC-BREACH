@@ -1,0 +1,26 @@
+/* CARDIAC//BREACH — final UI stability layer
+ * Loaded last. This is deliberately boring: layout must win over decoration.
+ */
+html,body{min-height:100%;overflow-x:hidden}
+body{position:relative}
+.topbar{position:sticky;top:0;z-index:1000}
+main{position:relative;z-index:1}
+.panel,.hero,.scenario-row,#cbDirector,.lower,.dashboard{position:relative;z-index:1}
+button,select,input{position:relative;z-index:2}
+canvas{display:block;max-width:100%;height:auto}
+#cbDirector{display:flex;align-items:center;gap:10px;margin:0 clamp(18px,4vw,56px) 12px;min-height:42px}
+#cbObjectives{min-width:0;flex:1}.simple-objective{display:flex;align-items:center;gap:10px;min-height:38px;padding:8px 12px;background:#0d131a;border:1px solid #273140;border-left:3px solid #d8f36a}.simple-objective b{font-size:8px;letter-spacing:.14em;color:#d8f36a}.simple-objective span{font-size:10px;color:#aab4c1}
+#cbGuide{flex:0 0 auto}
+/* Only the active tutorial layer may float above the game. */
+#beginnerGuide{z-index:50000!important;pointer-events:none!important}
+#beginnerGuide .bg-card{z-index:50001!important;pointer-events:auto!important}
+#bgArrow{z-index:50002!important}
+#bgToast{z-index:51000!important}
+/* Retired modal/coach surfaces cannot sit above the beginner guide. */
+#cbCoach{display:none!important}
+#cbStart{display:none!important}
+/* Final debrief remains interactive only when it explicitly has .show. */
+#finalOverlay{z-index:40000!important}
+/* Prevent decorative absolute elements from creating accidental click shields. */
+[aria-hidden="true"]{pointer-events:none}
+@media(max-width:720px){#cbDirector{display:grid;grid-template-columns:1fr;gap:7px;margin-left:12px;margin-right:12px}.simple-objective{align-items:flex-start;flex-direction:column;gap:3px}#cbGuide{width:100%}}
