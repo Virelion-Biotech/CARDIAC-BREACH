@@ -1,29 +1,30 @@
-# CARDIAC//BREACH balance pass
+# CARDIAC//BREACH balance contract
 
-## Current design targets
-- No single agent should solve every scenario.
-- Every base agent should have a clear strength and a meaningful opportunity cost.
-- Evolved agents should be stronger in a narrow role rather than universally dominant.
-- Energy is intended to force composition decisions rather than simply limiting total clicks.
-- Viability and function are separate objectives: preserving cells is not identical to preserving cardiac performance.
+The balance layer is intentionally **not** trying to make every agent equally strong. Each agent should have a reason to be selected, while no single agent or repeated stack should be the obvious answer across all scenarios.
 
-## Agent roles
-| Agent | Primary value | Trade-off |
+## Base-agent roles
+
+| Agent | Primary niche | Trade-off |
 |---|---|---|
-| Stabilizer | stress / secondary injury control | modest direct recovery |
-| Regenerator | viability recovery | higher energy pressure |
-| Immune Modulator | inflammatory control | weak against isolated electrical failure |
-| Vascular Support | oxygen + function | indirect benefit |
-| Maturation Agent | long-term function | slow payoff |
-| Electrical Buffer | arrhythmia control | limited tissue recovery |
+| Stabilizer | Long-horizon tissue preservation / fibrosis | Lower direct recovery throughput |
+| Regenerator | Direct recovery and function | High energy cost + diminishing returns when stacked |
+| Immune Modulator | Inflammatory scenario | Less impact outside its niche |
+| Vascular Support | Ischemia / oxygen-limited tissue | Diminishing function returns when stacked |
+| Maturation Agent | Maturation-failure scenario | Smaller general-purpose effect |
+| Electrical Buffer | Arrhythmia scenario | Specialized outside electrical instability |
 
-## Testing checklist
-- Run every scenario with no agents.
-- Run every scenario with each single base agent.
-- Run mixed teams with a maximum of five agents.
-- Verify evolved policies do not create runaway positive feedback.
-- Check that archived agents remain reproducible after reload.
-- Check score trajectory after restoring a checkpoint.
+## Balance rules
 
-## Design rule
-Balance should be changed through explicit simulation parameters, not hidden UI multipliers. Every major balance change should be documented here so the game remains auditable.
+1. **Niche viability:** every base agent must improve at least one scenario by a measurable margin.
+2. **No scenario runaway:** the best single agent should not exceed the second-best by more than 15 score points in the automated matrix.
+3. **No universal winner:** no base agent may win more than three of five scenarios.
+4. **Diminishing returns:** repeated copies of a role receive penalties so composition matters more than raw stacking.
+5. **Evolved-policy ceiling:** evolved policies have bounded per-trait effects and bounded deployment cost.
+6. **Evolved diversity:** mutation is deliberately moderate and fitness weights retain trait identity rather than letting the current run outcome completely determine the next generation.
+7. **State safety:** all tracked state variables remain in [0,100], energy remains non-negative, and a 24-day run produces exactly 24 history points.
+
+## Test strategy
+
+`tests/game.spec.js` runs browser-level Playwright tests covering boot, full-run invariants, deployment limits, checkpoint restoration, evolutionary diversity, a 5×6 agent/scenario balance matrix, and duplicate-stack behavior. CI runs the Chromium suite on pushes and pull requests.
+
+The thresholds are deliberately conservative: the goal is to catch strategic collapse, not to force identical performance.
