@@ -1,0 +1,4 @@
+(() => {
+ const overlay=document.createElement('div');overlay.id='introOverlay';overlay.innerHTML=`<div class="intro-card"><div class="intro-mark">C//B</div><div class="intro-kicker">VIRELION // CARDIAC SYSTEMS LAB</div><h2>CARDIAC<span>//</span>BREACH</h2><p>Contain tissue failure. Build your response team. Evolve synthetic agents. Survive the breach.</p><div class="intro-grid"><div><b>24</b><small>SIM DAYS</small></div><div><b>216</b><small>TISSUE CELLS</small></div><div><b>5</b><small>AGENTS</small></div></div><button id="enterSim">ENTER SIMULATION</button><div class="intro-note">SYNTHETIC EDUCATIONAL SIMULATION · NO REAL BIOLOGICAL PROCEDURES</div></div>`;document.body.prepend(overlay);
+ document.getElementById('enterSim').onclick=()=>{overlay.classList.add('leave');setTimeout(()=>overlay.remove(),650)};
+})();
