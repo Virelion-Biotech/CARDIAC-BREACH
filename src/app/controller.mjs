@@ -18,6 +18,8 @@ export class CardiacAppController{
   get selectedRegion(){return this.#game?.cells?.[this.#selectedCell]||null}
   get engine(){return this.#engine}
   on(type,listener){return this.#emitter.on(type,listener)}
+  subscribe(listener){return this.#emitter.onAny?this.#emitter.onAny(listener):this.#subscribeAll(listener)}
+  #subscribeAll(listener){const events=['mounted','new-run','selection','deployment','rejected','resolved','load'];const offs=events.map(type=>this.#emitter.on(type,listener));return()=>offs.forEach(off=>off())}
   selectCell(index){if(!Number.isInteger(index)||!this.#game?.cells?.[index])return false;this.#selectedCell=index;this.#emit('selection');return true}
   newRun(scenario=this.#scenario(),seed=null){const actualSeed=Number.isInteger(seed)?seed>>>0:(Date.now()>>>0);this.#game=this.#engine.create(actualSeed,scenario);this.#physiology.seed?.(this.#game);this.#selectedCell=0;this.#emit('new-run');this.#render.schedule(()=>this.#requestLegacyRefresh());return this.#game}
   deploy(agentId,name=null){if(!this.#game)this.newRun();const result=this.#engine.place(this.#game,agentId,this.#selectedCell,name);this.#emit(result.ok?'deployment':'rejected',result);this.#render.schedule(()=>this.#requestLegacyRefresh());return result}
@@ -35,12 +37,10 @@ export class CardiacAppController{
     tissue?.addEventListener('click',event=>{const rect=tissue.getBoundingClientRect();const x=Math.floor(((event.clientX-rect.left)/rect.width)*this.#engine.W);const y=Math.floor(((event.clientY-rect.top)/rect.height)*this.#engine.H);this.selectCell(y*this.#engine.W+x)});
     this.#document.addEventListener('keydown',event=>{
       if(event.target instanceof HTMLElement && ['INPUT','SELECT','TEXTAREA','BUTTON'].includes(event.target.tagName))return;
-      const cell=this.#selectedCell,x=cell%this.#engine.W,y=Math.floor(cell/this.#engine.W);const delta=event.key==='ArrowLeft'?-1:event.key==='ArrowRight'?1:event.key==='ArrowUp'?-this.#engine.W:event.key==='ArrowDown'?this.#engine.W:null;
+      const cell=this.#selectedCell;const delta=event.key==='ArrowLeft'?-1:event.key==='ArrowRight'?1:event.key==='ArrowUp'?-this.#engine.W:event.key==='ArrowDown'?this.#engine.W:null;
       if(delta!==null){event.preventDefault();this.selectCell(Math.max(0,Math.min(this.#engine.W*this.#engine.H-1,cell+delta)))}
     });
   }
   #emit(type,payload){this.#emitter.emit(type,{type,payload,app:this})}
-  #requestLegacyRefresh(){
-    document.documentElement.dispatchEvent(new CustomEvent('cardiac:state-change',{detail:{app:this}}));
-  }
+  #requestLegacyRefresh(){this.#document.documentElement.dispatchEvent(new CustomEvent('cardiac:state-change',{detail:{app:this}}))}
 }
