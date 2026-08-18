@@ -1,32 +1,39 @@
 import {Emitter} from '../runtime/emitter.mjs';
 import {RenderScheduler} from '../runtime/render-scheduler.mjs';
+import {PerformanceMonitor} from '../runtime/performance-monitor.mjs';
 
 export class CardiacAppController{
-  #engine;#physiology;#document;#game=null;#selectedCell=0;#started=false;#emitter=new Emitter();#render;
+  #engine;#physiology;#document;#game=null;#selectedCell=0;#started=false;#emitter=new Emitter();#render;#performance=new PerformanceMonitor();
   constructor({engine,physiology,documentRef=document}){
     if(!engine)throw new Error('engine required');
     if(!physiology)throw new Error('physiology required');
     this.#engine=engine;this.#physiology=physiology;this.#document=documentRef;this.#render=new RenderScheduler();
   }
-  mount(){
-    if(this.#started)return this;
-    this.#bindControls();this.#loadOrCreate();this.#started=true;
-    this.#emit('mounted');return this;
-  }
+  mount(){if(this.#started)return this;this.#bindControls();this.#loadOrCreate();this.#started=true;this.#emit('mounted');return this}
   get state(){return this.#game}
   get selectedCell(){return this.#selectedCell}
   get selectedRegion(){return this.#game?.cells?.[this.#selectedCell]||null}
   get engine(){return this.#engine}
+  get performance(){return this.#performance.snapshot()}
   on(type,listener){return this.#emitter.on(type,listener)}
-  subscribe(listener){return this.#emitter.onAny?this.#emitter.onAny(listener):this.#subscribeAll(listener)}
+  subscribe(listener){return this.#subscribeAll(listener)}
   #subscribeAll(listener){const events=['mounted','new-run','selection','deployment','rejected','resolved','load'];const offs=events.map(type=>this.#emitter.on(type,listener));return()=>offs.forEach(off=>off())}
   selectCell(index){if(!Number.isInteger(index)||!this.#game?.cells?.[index])return false;this.#selectedCell=index;this.#emit('selection');return true}
   newRun(scenario=this.#scenario(),seed=null){const actualSeed=Number.isInteger(seed)?seed>>>0:(Date.now()>>>0);this.#game=this.#engine.create(actualSeed,scenario);this.#physiology.seed?.(this.#game);this.#selectedCell=0;this.#emit('new-run');this.#render.schedule(()=>this.#requestLegacyRefresh());return this.#game}
   deploy(agentId,name=null){if(!this.#game)this.newRun();const result=this.#engine.place(this.#game,agentId,this.#selectedCell,name);this.#emit(result.ok?'deployment':'rejected',result);this.#render.schedule(()=>this.#requestLegacyRefresh());return result}
-  advanceDay(){if(!this.#game)this.newRun();const scenario=this.#engine.scenarios[this.#game.scenario];const physiologyResult=this.#physiology.phase?.(this.#game,scenario);if(physiologyResult?.hidden)this.#game.hidden=physiologyResult.hidden;const result=this.#engine.resolve(this.#game);this.#emit('resolved',{...result,physiology:physiologyResult});this.#render.schedule(()=>this.#requestLegacyRefresh());return result}
+  advanceDay(){
+    if(!this.#game)this.newRun();
+    const result=this.#performance.measure('turn.resolve',()=>{
+      const scenario=this.#engine.scenarios[this.#game.scenario];
+      const physiologyResult=this.#physiology.phase?.(this.#game,scenario);
+      if(physiologyResult?.hidden)this.#game.hidden=physiologyResult.hidden;
+      return this.#engine.resolve(this.#game);
+    });
+    this.#emit('resolved',result);this.#render.schedule(()=>this.#requestLegacyRefresh());return result;
+  }
   save(){if(!this.#game)return false;try{localStorage.setItem('cb-app-v5',JSON.stringify({game:this.#engine.snapshot(this.#game),selectedCell:this.#selectedCell}));return true}catch(error){console.warn('[CARDIAC//BREACH] save failed',error);return false}}
   load(){try{const raw=localStorage.getItem('cb-app-v5');if(!raw)return false;const parsed=JSON.parse(raw);this.#game=this.#engine.rehydrate(parsed.game);this.#selectedCell=Number.isInteger(parsed.selectedCell)?parsed.selectedCell:0;this.#physiology.seed?.(this.#game);this.#emit('load');return true}catch(error){console.warn('[CARDIAC//BREACH] load failed',error);return false}}
-  dispose(){this.#emitter.clear();this.#render.dispose();}
+  dispose(){this.#emitter.clear();this.#render.dispose()}
   #loadOrCreate(){if(!this.load())this.newRun(this.#scenario())}
   #scenario(){return this.#document.getElementById('scenario')?.value||'ischemia'}
   #bindControls(){
