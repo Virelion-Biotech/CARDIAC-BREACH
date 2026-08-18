@@ -1,37 +1,61 @@
-/* CARDIAC//BREACH — true beginner tutorial
- * Assumes zero science or programming knowledge.
- * Teaches the interface one action at a time with a center coach, visual target pulse and arrow guidance.
+/* CARDIAC//BREACH — single beginner tutorial
+ * Zero science / CS assumptions. One coach at a time; never duplicates the director.
  */
 (()=>{
  'use strict';
- const $=id=>document.getElementById(id);const KEY='cb-beginner-tutorial-v3';
+ const $=id=>document.getElementById(id),KEY='cb-beginner-tutorial-v4';
  let guideOn=localStorage.getItem(KEY+':on')!=='0',seen=localStorage.getItem(KEY+':seen')==='1',step=0;
  const steps=[
-  {title:'Welcome — what is this game?',text:'You are protecting a completely fictional heart-tissue model. Think of the colored squares as tiny pieces of tissue. Your job is to keep the tissue healthy while a problem develops.',target:null,action:'Read this once, then click NEXT.'},
-  {title:'1 · Start the game',text:'NEW RUN creates a fresh game. Nothing moves until you start. Each run lasts 24 game-days.',target:'#newRun',action:'Click NEW RUN.'},
-  {title:'2 · Choose the problem',text:'SCENARIO is simply the problem you are trying to manage. Start with Ischemic injury. You can explore the others later.',target:'#scenario',action:'Choose Ischemic injury.'},
-  {title:'3 · Meet the tissue map',text:'The large grid is your game board. Each square is one small piece of fictional tissue. Click a square to select it. The bright outline shows your selection.',target:'#tissue',action:'Click one square on the tissue map.'},
-  {title:'4 · What is a region?',text:'A REGION is just a location on the board. The inspector tells you what is happening in the selected area. You do not need biology knowledge.',target:'#inspector',action:'Look at the REGION INSPECTOR.'},
-  {title:'5 · What do the numbers mean?',text:'VIABILITY = how much tissue is alive. FUNCTION = how well it works. OXYGEN = how well supplied it is. INFLAMMATION, FIBROSIS and ARRHYTHMIA are problems, so lower is better. ENERGY is your spending budget.',target:'#viability',action:'Look at the numbers on the right.'},
-  {title:'6 · What is an agent?',text:'An AGENT is simply a tool you can use to help the tissue. Each one has a name, a job, and an energy cost. For your first run, use STABILIZER.',target:'#agentList',action:'Find STABILIZER in the Agent Foundry.'},
-  {title:'7 · Put an agent on a cell',text:'This is the key idea: first click the cell you want to help. Then click DEPLOY on the agent. The agent is assigned to that selected cell. An ACTIVE ring appears immediately. Its actual tissue effect is applied when you advance the day.',target:'#agentList',action:'Click a cell → click STABILIZER → click DEPLOY.'},
-  {title:'8 · Advance the game',text:'ADVANCE DAY moves the simulation forward by one day. Your placed agent now affects its target cell and the rest of the tissue responds.',target:'#nextDay',action:'Click ADVANCE DAY once.'},
-  {title:'9 · Check what changed',text:'Look at the selected cell again. You should see its local numbers change after the day advances. Then compare the big system numbers on the right.',target:'#inspector',action:'Compare the cell before and after advancing.'},
-  {title:'10 · React',text:'If another problem is getting worse, select another cell and deploy a helpful agent there. You can use up to five agents. Do not try to fix everything at once.',target:'#agentList',action:'Add one more agent only if you need it.'},
-  {title:'11 · You know the whole loop',text:'START → CHOOSE A PROBLEM → CLICK A CELL → DEPLOY AN AGENT → ADVANCE A DAY → CHECK WHAT CHANGED → REACT. The other panels are optional advanced information.',target:null,action:'Click FINISH GUIDE and play normally.'}
+  {title:'Welcome — what is this game?',text:'You are protecting a completely fictional heart-tissue model. The colored squares are pieces of tissue. Your job is to keep the tissue alive while problems develop.',target:null,action:'Read this, then click NEXT.'},
+  {title:'1 · Start the game',text:'NEW RUN creates a fresh run. Nothing advances until you choose to move the game forward.',target:'#newRun',action:'Click NEW RUN.',must:()=>true},
+  {title:'2 · Choose the problem',text:'SCENARIO is simply the problem you are managing. For your first run, leave it on Ischemic injury.',target:'#scenario',action:'Choose Ischemic injury.',check:()=>($('scenario')?.value==='ischemia')},
+  {title:'3 · Meet the tissue map',text:'The large grid is your board. Every square is one small piece of fictional tissue. Click a square to select it.',target:'#tissue',action:'Click one square on the tissue map.',check:()=>typeof window.CBApp?.selectedCell==='number'},
+  {title:'4 · What is a region?',text:'A region is simply a location on the board. The inspector tells you what is happening there. You do not need scientific knowledge.',target:'#inspector',action:'Look at the selected-region panel.'},
+  {title:'5 · What do the numbers mean?',text:'VIABILITY = how much tissue is alive. FUNCTION = how well it works. OXYGEN = supply. INFLAMMATION, FIBROSIS and ARRHYTHMIA are problems, so lower is better. ENERGY is your spending budget.',target:'#viability',action:'Look at the heart-status numbers.'},
+  {title:'6 · What is an agent?',text:'An agent is simply a tool you can use to help the tissue. Each has a different job and cost. Start with STABILIZER.',target:'#agentList',action:'Find STABILIZER in the interventions panel.'},
+  {title:'7 · Put an agent on a cell',text:'First select the cell you want to help. Then use DEPLOY on the agent. An active ring appears on that cell. The local tissue response resolves when you end the turn.',target:'#agentList',action:'Click a cell → STABILIZER → DEPLOY.',check:()=>Array.isArray(window.CBApp?.state?.agents)&&window.CBApp.state.agents.length>0},
+  {title:'8 · Advance the game',text:'END TURN moves the simulation forward. The intervention now affects its target and the rest of the tissue responds.',target:'#nextDay',action:'Click END TURN once.',check:()=>Number(window.CBApp?.state?.day||0)>=1},
+  {title:'9 · Check what changed',text:'Look at the selected region and then the main heart-status bars. You are looking for what improved and what got worse.',target:'#inspector',action:'Compare the region before and after the turn.'},
+  {title:'10 · React',text:'You do not need to fix everything. Find the most urgent problem, choose one useful intervention, and continue.',target:'#agentList',action:'Make one thoughtful next move.'},
+  {title:'You know the loop',text:'START → CHOOSE → SELECT A CELL → DEPLOY → END TURN → CHECK → REACT. Everything else is optional advanced information.',target:null,action:'Click FINISH GUIDE and play.'}
  ];
- function ensurePanel(){if($('beginnerGuide'))return;const panel=document.createElement('div');panel.id='beginnerGuide';panel.innerHTML=`<div class="bg-card"><div class="bg-top"><span class="bg-kicker">BEGINNER COACH</span><span id="bgCount">1 / ${steps.length}</span></div><div class="bg-icon" id="bgIcon">C//B</div><h2 id="bgTitle"></h2><p id="bgText"></p><div class="bg-action"><b>DO THIS</b><span id="bgAction"></span></div><div class="bg-footer"><button id="bgBack" class="secondary">BACK</button><button id="bgNext">NEXT</button><button id="bgSkip" class="secondary">SKIP GUIDE</button></div></div><div id="bgArrow" aria-hidden="true"></div>`;document.body.appendChild(panel);$('bgNext').onclick=next;$('bgBack').onclick=back;$('bgSkip').onclick=close;}
- function clearPulse(){document.querySelectorAll('.bg-pulse').forEach(e=>e.classList.remove('bg-pulse'));$('bgArrow')?.classList.remove('show');}
- function pointToTarget(target){const arrow=$('bgArrow'),card=document.querySelector('.bg-card');if(!arrow||!card||!target)return;const a=target.getBoundingClientRect(),c=card.getBoundingClientRect(),ax=a.left+a.width/2,ay=a.top+a.height/2,cx=c.left+c.width/2,cy=c.top+c.height/2,dx=ax-cx,dy=ay-cy,len=Math.max(50,Math.hypot(dx,dy)),angle=Math.atan2(dy,dx)*180/Math.PI;arrow.style.left=`${cx}px`;arrow.style.top=`${cy}px`;arrow.style.width=`${Math.min(len,Math.max(90,innerWidth*.42))}px`;arrow.style.transform=`translateY(-50%) rotate(${angle}deg)`;arrow.classList.add('show');}
- function render(){ensurePanel();const s=steps[step];$('bgCount').textContent=`${step+1} / ${steps.length}`;$('bgTitle').textContent=s.title;$('bgText').textContent=s.text;$('bgAction').textContent=s.action;$('bgBack').disabled=step===0;$('bgNext').textContent=step===steps.length-1?'FINISH GUIDE':'NEXT';clearPulse();if(s.target){const el=document.querySelector(s.target);if(el){el.classList.add('bg-pulse');setTimeout(()=>pointToTarget(el),60)}}}
- function next(){if(step===1&&!window.running){flash('Press NEW RUN first.');return}if(step===2&&$('scenario')?.value!=='ischemia'){flash('For the tutorial, choose Ischemic injury.');return}if(step===3&&typeof window.selected==='undefined'){flash('Click one square on the tissue map first.');return}if(step===7&&!(window.agents||[]).some(a=>a.targetCell!==undefined)){flash('Select a cell and deploy the STABILIZER.');return}if(step===8&&(window.day||0)<1){flash('Click ADVANCE DAY once.');return}if(step<steps.length-1){step++;render()}else close();}
+ function ensure(){
+  if($('beginnerGuide'))return;
+  const panel=document.createElement('div');panel.id='beginnerGuide';
+  panel.innerHTML='<div class="bg-card" role="dialog" aria-modal="false" aria-labelledby="bgTitle"><div class="bg-top"><span class="bg-kicker">BEGINNER COACH</span><span id="bgCount"></span></div><div class="bg-icon">C//B</div><h2 id="bgTitle"></h2><p id="bgText"></p><div class="bg-action"><b>DO THIS</b><span id="bgAction"></span></div><div class="bg-footer"><button id="bgBack" class="secondary" type="button">BACK</button><button id="bgNext" type="button">NEXT</button><button id="bgSkip" class="secondary" type="button">SKIP GUIDE</button></div></div><div id="bgArrow" aria-hidden="true"></div>';
+  document.body.appendChild(panel);$('bgNext').onclick=next;$('bgBack').onclick=back;$('bgSkip').onclick=close;
+ }
+ function clear(){document.querySelectorAll('.bg-pulse').forEach(e=>e.classList.remove('bg-pulse'));$('bgArrow')?.classList.remove('show')}
+ function placeCoach(target){
+  const card=document.querySelector('.bg-card');if(!card)return;
+  card.style.left='50%';card.style.top='50%';card.style.transform='translate(-50%,-50%)';
+  if(!target){$('bgArrow')?.classList.remove('show');return}
+  requestAnimationFrame(()=>{
+    const r=target.getBoundingClientRect(),vw=innerWidth,vh=innerHeight,gap=22;
+    const cw=card.offsetWidth,ch=card.offsetHeight;
+    const candidates=[
+      {left:r.right+gap,top:r.top+r.height/2-ch/2},
+      {left:r.left-cw-gap,top:r.top+r.height/2-ch/2},
+      {left:r.left+r.width/2-cw/2,top:r.bottom+gap},
+      {left:r.left+r.width/2-cw/2,top:r.top-ch-gap}
+    ];
+    const fits=p=>p.left>=12&&p.top>=12&&p.left+cw<=vw-12&&p.top+ch<=vh-12;
+    const p=candidates.find(fits)||{left:(vw-cw)/2,top:Math.max(12,Math.min(vh-ch-12,r.top>vh/2?12:vh-ch-12))};
+    card.style.left=`${p.left}px`;card.style.top=`${p.top}px`;card.style.transform='none';
+    const cr=card.getBoundingClientRect(),ax=r.left+r.width/2,ay=r.top+r.height/2,cx=cr.left+cr.width/2,cy=cr.top+cr.height/2,dx=ax-cx,dy=ay-cy,len=Math.hypot(dx,dy),arrow=$('bgArrow');
+    if(arrow&&len>55){arrow.style.left=`${cx}px`;arrow.style.top=`${cy}px`;arrow.style.width=`${Math.max(65,Math.min(len-10,Math.max(90,vw*.35)))}px`;arrow.style.transform=`translateY(-50%) rotate(${Math.atan2(dy,dx)*180/Math.PI}deg)`;arrow.classList.add('show')}
+  });
+ }
+ function render(){ensure();const s=steps[step];$('bgCount').textContent=`${step+1} / ${steps.length}`;$('bgTitle').textContent=s.title;$('bgText').textContent=s.text;$('bgAction').textContent=s.action;$('bgBack').disabled=step===0;$('bgNext').textContent=step===steps.length-1?'FINISH GUIDE':'NEXT';clear();const target=s.target?document.querySelector(s.target):null;if(target){target.classList.add('bg-pulse');target.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});placeCoach(target)} }
+ function guard(){const s=steps[step];if(s.check&&!s.check()){flash('Follow the highlighted action first.');return false}return true}
+ function next(){if(!guard())return;if(step<steps.length-1){step++;render()}else close()}
  function back(){if(step>0){step--;render()}}
- function flash(msg){let t=$('bgToast');if(!t){t=document.createElement('div');t.id='bgToast';document.body.appendChild(t)}t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.remove(),2300)}
- function close(){localStorage.setItem(KEY+':seen','1');$('beginnerGuide')?.remove();clearPulse();seen=true}
- function open(){step=0;render()}
- function addHelpButton(){if($('beginnerHelp'))return;const b=document.createElement('button');b.id='beginnerHelp';b.className='secondary small';b.textContent='HOW TO PLAY';b.onclick=open;document.querySelector('.controls')?.appendChild(b)}
- window.addEventListener('resize',()=>{const s=steps[step];if(s?.target){const el=document.querySelector(s.target);if(el)pointToTarget(el)}});
- function init(){addHelpButton();if(guideOn&&!seen)open()}
+ function flash(msg){let t=$('bgToast');if(!t){t=document.createElement('div');t.id='bgToast';document.body.appendChild(t)}t.textContent=msg;clearTimeout(t._t);t._t=setTimeout(()=>t.remove(),1800)}
+ function close(){localStorage.setItem(KEY+':seen','1');$('beginnerGuide')?.remove();clear();seen=true}
+ function open(){guideOn=true;localStorage.setItem(KEY+':on','1');step=0;render()}
+ function addHelp(){const old=$('beginnerHelp');if(old)old.remove();const b=document.createElement('button');b.id='beginnerHelp';b.className='secondary small';b.type='button';b.textContent='HOW TO PLAY';b.onclick=open;document.querySelector('.controls')?.appendChild(b)}
+ window.addEventListener('resize',()=>{const s=steps[step];if(s?.target)placeCoach(document.querySelector(s.target))});
+ function init(){addHelp();if(guideOn&&!seen)open()}
  window.CB_BeginnerGuide={open,flash};
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,180));else setTimeout(init,180);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
