@@ -27,9 +27,9 @@
       for(const selector of COMPETING){
         const el=document.querySelector(selector);
         if(el&&selector!=='#beginnerGuide'){
-          el.dataset.coordinatorSuppressed='true';
-          el.classList.remove('show');
-          el.setAttribute('aria-hidden','true');
+          if(el.dataset.coordinatorSuppressed!=='true')el.dataset.coordinatorSuppressed='true';
+          if(el.classList.contains('show'))el.classList.remove('show');
+          if(el.getAttribute('aria-hidden')!=='true')el.setAttribute('aria-hidden','true');
         }
       }
       document.body.classList.add('beginner-active');
@@ -39,7 +39,7 @@
         const el=document.querySelector(selector);
         if(el?.dataset.coordinatorSuppressed==='true'){
           delete el.dataset.coordinatorSuppressed;
-          el.removeAttribute('aria-hidden');
+          if(el.getAttribute('aria-hidden')==='true')el.removeAttribute('aria-hidden');
         }
       }
     }
@@ -90,7 +90,7 @@
         arrow.style.width=`${Math.max(70,Math.min(len-8,Math.max(90,w*.34)))}px`;
         arrow.style.transform=`translateY(-50%) rotate(${Math.atan2(dy,dx)*180/Math.PI}deg)`;
         arrow.classList.add('show');
-      }else arrow.classList.remove('show');
+      }else if(arrow.classList.contains('show'))arrow.classList.remove('show');
     }
   }
 
