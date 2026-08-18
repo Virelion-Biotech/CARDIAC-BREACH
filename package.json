@@ -1,14 +1,22 @@
 {
   "name": "cardiac-breach",
   "private": true,
-  "version": "0.7.0",
-  "description": "CARDIAC//BREACH synthetic cardiac tissue strategy simulator",
+  "version": "4.1.0",
+  "description": "CARDIAC//BREACH — medical roguelike strategy game powered by a hidden synthetic cardiac tissue model",
   "scripts": {
-    "test": "playwright test",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node --test tests/unit/*.test.mjs",
+    "test:e2e": "playwright test",
     "test:headed": "playwright test --headed",
-    "test:ui": "playwright test --ui"
+    "test:ui": "playwright test --ui",
+    "check": "node --check src/bootstrap.mjs && node --check src/app/controller.mjs && node --check src/core/game-port.mjs && node --check src/runtime/emitter.mjs && node --check src/runtime/render-scheduler.mjs",
+    "build": "node scripts/build.mjs",
+    "start": "python3 -m http.server 4173"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
