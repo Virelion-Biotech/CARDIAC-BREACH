@@ -9,7 +9,7 @@
     "test:e2e": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
-    "check": "node --check src/bootstrap.mjs && node --check src/app/controller.mjs && node --check src/core/game-port.mjs && node --check src/runtime/emitter.mjs && node --check src/runtime/render-scheduler.mjs",
+    "check": "node scripts/check-syntax.mjs",
     "build": "node scripts/build.mjs",
     "start": "python3 -m http.server 4173"
   },
