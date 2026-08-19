@@ -3,6 +3,6 @@
 window.CB_IMMERSIVE_UI=true;
 function add(id,href){if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src=href;s.defer=true;document.body.appendChild(s)}
 function css(id,href){if(document.getElementById(id))return;const l=document.createElement('link');l.id=id;l.rel='stylesheet';l.href=href;document.head.appendChild(l)}
-function boot(){document.body.classList.add('cb-immersive');document.querySelectorAll('#beginnerGuide,#introOverlay,.cb-immersive-root,#cbFeatureTray,#cbFeaturePanel,#cbFeatureModal,#crisisLayer').forEach(e=>e.remove());css('cb-v2-css','immersive-command-center-v2.css?v=2');add('cb-v2-js','immersive-command-center-v2.js?v=2')}
+function boot(){document.body.classList.add('cb-immersive');document.querySelectorAll('#beginnerGuide,#introOverlay,.cb-immersive-root,#cbFeatureTray,#cbFeaturePanel,#cbFeatureModal,#crisisLayer').forEach(e=>e.remove());css('cb-v2-css','immersive-command-center-v2.css?v=3');css('cb-v2-compact','immersive-compact-panels.css?v=1');add('cb-v2-js','immersive-command-center-v2.js?v=3')}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
