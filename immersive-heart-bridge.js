@@ -30,11 +30,12 @@ const fallback=`<div class="ci-anatomy-fallback" role="img" aria-label="Interact
 </svg><div class="ci-anatomy-overlay"><span>ANATOMICAL MODEL</span><b>CLICK TO SELECT REGION</b></div></div>`;
 function emit(name,detail){document.dispatchEvent(new CustomEvent(name,{detail}));}
 function rememberSelection(index){window.CBImmersiveSelection={index,ts:Date.now()};document.documentElement.dataset.cbImmersiveSelection=String(index);emit('cb:immersive-selection',{index});window.CB_BeginnerGuide?.notifySelection?.();}
+function ensureFallback(host){if(!host)return;if(host.querySelector('.ci-offline'))host.innerHTML=fallback;if(!host.querySelector('canvas')&&!host.querySelector('.ci-anatomy-fallback'))host.insertAdjacentHTML('afterbegin',fallback);}
 function install(){
  const host=document.getElementById(HEART_ID);if(!host)return false;
- if(!host.querySelector('canvas')&&!host.querySelector('.ci-anatomy-fallback')){host.insertAdjacentHTML('afterbegin',fallback);}
- host.addEventListener('click',e=>{
-  if(e.target.closest('button'))return;
+ ensureFallback(host);
+ if(!host.dataset.cbBridgeBound){host.dataset.cbBridgeBound='1';host.addEventListener('click',e=>{
+  if(e.target.closest('button')||e.target.closest('.ci-crisis'))return;
   const rect=host.getBoundingClientRect();
   const x=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
   const y=Math.max(0,Math.min(1,(e.clientY-rect.top)/rect.height));
@@ -42,6 +43,8 @@ function install(){
   const index=Math.max(0,Math.min(n-1,Math.floor((y*n*.82+x*n*.18))));
   app()?.selectCell?.(index);rememberSelection(index);
  },true);
+ }
+ if(!host._cbRecoveryObserver){const obs=new MutationObserver(()=>{if(host.querySelector('.ci-offline'))ensureFallback(host)});obs.observe(host,{childList:true,subtree:true});host._cbRecoveryObserver=obs;}
  return true;
 }
 function replay(){const s=window.CBImmersiveSelection;if(s&&Number.isInteger(s.index)){document.documentElement.dataset.cbImmersiveSelection=String(s.index);window.CB_BeginnerGuide?.notifySelection?.();emit('cb:immersive-selection',{index:s.index,replay:true});}}
