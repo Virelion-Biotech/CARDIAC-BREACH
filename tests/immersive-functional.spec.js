@@ -1,15 +1,16 @@
 import {test,expect} from '@playwright/test';
 
-async function openGame(page){
+async function openGame(page,{dismissInitialCrisis=false}={}){
   await page.addInitScript(()=>localStorage.setItem('cb-beginner-tutorial-v6:seen','1'));
   await page.goto('/');
   await page.waitForSelector('#cbImmersive');
   await page.waitForFunction(()=>window.CBApp?.state?.cells?.length===216);
+  if(dismissInitialCrisis && await page.locator('#ciCrisis.open').count()) await page.keyboard.press('Escape');
 }
 
 test.describe('immersive functional loop',()=>{
   test('select -> arm -> deploy updates the real game state',async({page})=>{
-    await openGame(page);
+    await openGame(page,{dismissInitialCrisis:true});
     await page.locator('#ciHeart').click({position:{x:0.5,y:0.5}});
     await expect.poll(async()=>page.evaluate(()=>Number.isInteger(window.CBImmersiveSelection?.index))).toBe(true);
     await page.locator('.ci-ability[data-agent="stabilizer"]').click();
@@ -20,7 +21,7 @@ test.describe('immersive functional loop',()=>{
   });
 
   test('UI energy costs match the authoritative engine',async({page})=>{
-    await openGame(page);
+    await openGame(page,{dismissInitialCrisis:true});
     const costs=await page.evaluate(()=>Object.fromEntries(Object.entries(window.CBMechanisticGameEngine.AGENTS).map(([id,r])=>[id,r.cost])));
     for(const [id,cost] of Object.entries(costs)){
       await expect(page.locator(`.ci-ability[data-agent="${id}"] small`)).toHaveText(`${cost}E`);
@@ -28,7 +29,7 @@ test.describe('immersive functional loop',()=>{
   });
 
   test('end turn restores exactly one move',async({page})=>{
-    await openGame(page);
+    await openGame(page,{dismissInitialCrisis:true});
     await page.locator('#ciHeart').click({position:{x:0.5,y:0.5}});
     await page.locator('.ci-ability[data-agent="stabilizer"]').click();
     await page.locator('#ciHeart').click({position:{x:0.5,y:0.5}});
@@ -50,7 +51,7 @@ test.describe('immersive functional loop',()=>{
   });
 
   test('dragging the heart does not masquerade as a selection click',async({page})=>{
-    await openGame(page);
+    await openGame(page,{dismissInitialCrisis:true});
     await page.evaluate(()=>{window.CBImmersiveSelection=undefined;document.documentElement.removeAttribute('data-cb-immersive-selection')});
     const box=await page.locator('#ciHeart').boundingBox();
     if(!box) throw new Error('heart box unavailable');
@@ -62,7 +63,7 @@ test.describe('immersive functional loop',()=>{
   });
 
   test('audio volume API is safe before and after audio initialization',async({page})=>{
-    await openGame(page);
+    await openGame(page,{dismissInitialCrisis:true});
     await page.evaluate(()=>window.CBImmersiveAudio.setVolume(.4));
     expect(await page.evaluate(()=>window.CBImmersiveAudio.volume)).toBeCloseTo(.4);
     await page.evaluate(()=>window.CBImmersiveAudio.toggle());
