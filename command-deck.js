@@ -10,9 +10,11 @@ function boot(){
  css('cb-v2-compact','immersive-compact-panels.css?v=3');
  css('cb-heart-bridge-css','immersive-heart-bridge.css?v=2');
  css('cb-v6-redesign','immersive-redesign-v6.css?v=1');
+ css('cb-game-feel','immersive-game-feel.css?v=1');
  add('cb-v2-js','immersive-command-center-v2.js?v=5');
  add('cb-heart-bridge','immersive-heart-bridge.js?v=2');
  add('cb-tutorial-sync','immersive-tutorial-sync.js?v=2');
+ add('cb-immersive-audio','immersive-audio.js?v=1');
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
