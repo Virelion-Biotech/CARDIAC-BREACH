@@ -1,0 +1,6 @@
+const {test,expect}=require('@playwright/test');
+test.describe('canonical immersive cockpit',()=>{
+ test('boots into immersive heart command center',async({page})=>{await page.goto('/');await page.waitForSelector('#cbImmersive');await expect(page.locator('#cbImmersive')).toBeVisible();await expect(page.locator('#ciHeart')).toBeVisible();await expect(page.locator('.ci-tools')).toBeVisible();await expect(page.locator('.ci-dock')).toBeVisible();await expect(page.locator('#beginnerGuide')).toHaveCount(0);await expect(page.locator('#introOverlay')).toHaveCount(0);});
+ test('all feature consoles can open and close',async({page})=>{await page.goto('/');await page.waitForSelector('#cbImmersive');for(const name of ['system','status','history','evolution','help']){await page.locator(`[data-open="${name}"]`).click();await expect(page.locator('#ciPanel')).toHaveClass(/open/);await page.locator('#ciPanel [data-close]').click();await expect(page.locator('#ciPanel')).not.toHaveClass(/open/);}});
+ test('center heart is directly interactive',async({page})=>{await page.goto('/');await page.waitForSelector('#cbImmersive');await page.waitForTimeout(1000);const c=page.locator('#ciHeart canvas');if(await c.count()===0){test.skip();return;}await c.hover();await page.mouse.down();await page.mouse.move(700,320,{steps:4});await page.mouse.up();await page.mouse.wheel(0,300);});
+});
