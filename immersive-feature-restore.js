@@ -1,0 +1,62 @@
+/* CARDIAC//BREACH — restore functional gameplay inside immersive shell.
+ * Presentation adapter only: calls CBApp or existing feature APIs; does not duplicate simulation rules.
+ */
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+let tray,panel,modal,lab;
+function oldClick(id){$(id)?.click()}
+function app(){return window.CBApp}
+function togglePanel(){panel?.classList.toggle('open')}
+function closePanel(){panel?.classList.remove('open')}
+function status(msg,accent=false){const e=$('cbFeatureStatus');if(e)e.innerHTML=accent?`<strong>${esc(msg)}</strong>`:esc(msg)}
+function sync(){
+ const g=app()?.state;if(!g)return;
+ const scenario=g.scenario||$('scenario')?.value||'ischemia';
+ const scenarioName=app()?.engine?.scenarios?.[scenario]?.name||scenario;
+ const sel=app()?.selectedCell??0;
+ status(`R-${String(sel+1).padStart(3,'0')} · ${String(scenarioName).toUpperCase()} · ${g.moves??0} MOVE`,(g.moves??0)>0);
+}
+function openHelp(){window.CB_BeginnerGuide?.open?.();if(!window.CB_BeginnerGuide?.open)oldClick('beginnerHelp')}
+function build(){
+ if($('#cbFeatureTray'))return;
+ tray=document.createElement('div');tray.id='cbFeatureTray';tray.innerHTML=`
+  <button id="cbMenuBtn">SYSTEM</button><button id="cbRunBtn">NEW RUN</button><button id="cbHelpBtn">HOW TO PLAY</button><button id="cbSaveBtn">SAVE</button><button id="cbLoadBtn">LOAD</button><button id="cbExportBtn">EXPORT</button><button id="cbLabBtn">EVOLUTION</button>`;
+ $('.cb-hud')?.appendChild(tray);
+ const s=document.createElement('div');s.id='cbFeatureStatus';$('.cb-hud')?.appendChild(s);
+ panel=document.createElement('section');panel.id='cbFeaturePanel';panel.className='cb-feature-panel';panel.innerHTML=`<div class="head"><div><div class="kicker">SYSTEM CONSOLE</div><h3>RUN CONTROLS</h3></div><button class="close" id="cbPanelClose">CLOSE</button></div>
+ <div class="row"><label>SCENARIO</label><select id="cbScenario"><option value="ischemia">Ischemic injury</option><option value="inflammation">Inflammatory cascade</option><option value="fibrosis">Progressive fibrosis</option><option value="maturation">Maturation failure</option><option value="arrhythmia">Electrical instability</option></select></div>
+ <div class="stack"><button id="cbFresh">NEW RUN</button><button id="cbEnd">END TURN</button></div>
+ <div class="stack"><button id="cbSave">SAVE RUN</button><button id="cbLoad">LOAD RUN</button></div>
+ <div class="stack"><button id="cbExport">EXPORT RUN</button><button id="cbNeighbors">SEE NEARBY</button></div>
+ <div class="row wide"><label>CUSTOM INTERVENTION</label><input id="cbAgentName" maxlength="24" placeholder="Name (optional)"></div>
+ <div class="row wide"><select id="cbAgentType"><option value="stabilizer">Stabilizer</option><option value="regenerator">Regenerator</option><option value="immune">Immune modulator</option><option value="vascular">Vascular support</option><option value="maturation">Maturation</option><option value="electrical">Electrical buffer</option></select></div>
+ <div class="stack"><button id="cbDeployCustom">USE ON SELECTED REGION</button><button id="cbSound">AUDIO</button></div>
+ <div class="readout" id="cbControlReadout">Select a region in the 3D field first. Then arm an intervention from the bottom dock or use a custom intervention here.</div></section>`;
+ $('.cb-hud')?.appendChild(panel);
+ modal=document.createElement('section');modal.id='cbFeatureModal';modal.className='cb-feature-modal';modal.innerHTML=`<div class="modal-inner"><button class="close" id="cbLabClose">CLOSE</button><div class="kicker">DISCOVERY LAB</div><h3>EVOLVED INTERVENTIONS</h3><div class="readout" id="cbLabReadout">Seed a synthetic population, evaluate it, evolve it, archive the strongest policies, then deploy them from the intervention dock.</div><div class="stack"><button id="cbSeed">SEED POPULATION</button><button id="cbEvolve">EVOLVE</button><button id="cbClear">CLEAR</button></div><div class="cb-evo-grid" id="cbEvoGrid"></div></div>`;
+ $('.cb-hud')?.appendChild(modal);lab=modal;
+ wire();sync();renderLab();
+}
+function wire(){
+ $('cbMenuBtn').onclick=togglePanel;$('cbPanelClose').onclick=closePanel;
+ $('cbRunBtn').onclick=()=>{app()?.newRun?.($('cbScenario')?.value||'ischemia');status('FRESH RUN INITIALIZED',true);renderLab()};
+ $('cbHelpBtn').onclick=openHelp;
+ $('cbSaveBtn').onclick=()=>{app()?.save?.();status('RUN SAVED',true)};
+ $('cbLoadBtn').onclick=()=>{app()?.load?.();sync();renderLab();status('RUN LOADED',true)};
+ $('cbExportBtn').onclick=()=>oldClick('exportRun');
+ $('cbLabBtn').onclick=()=>{lab.classList.add('open');renderLab()};$('cbLabClose').onclick=()=>lab.classList.remove('open');
+ $('cbFresh').onclick=()=>{app()?.newRun?.($('cbScenario')?.value||'ischemia');closePanel();status('FRESH RUN INITIALIZED',true)};
+ $('cbEnd').onclick=()=>{app()?.advanceDay?.();closePanel();sync();status('TURN RESOLVED',true)};
+ $('cbSave').onclick=()=>{app()?.save?.();status('RUN SAVED',true)};$('cbLoad').onclick=()=>{app()?.load?.();sync();status('RUN LOADED',true)};$('cbExport').onclick=()=>oldClick('exportRun');
+ $('cbNeighbors').onclick=()=>oldClick('inspectNeighbors');
+ $('cbScenario').onchange=e=>{app()?.newRun?.(e.target.value);sync();status(`SCENARIO: ${e.target.options[e.target.selectedIndex].text}`,true)};
+ $('cbDeployCustom').onclick=()=>{const id=$('cbAgentType').value,name=$('cbAgentName').value.trim()||null;const r=app()?.deploy?.(id,name);status(r?.ok?`${String(id).toUpperCase()} DEPLOYED`:r?.reason||'DEPLOYMENT REJECTED',!!r?.ok)};
+ $('cbSound').onclick=()=>{const a=$('audioToggle');if(a)oldClick('audioToggle');else window.CBAudio?.toggleMute?.();status('AUDIO CONTROLLED',true)};
+ $('cbSeed').onclick=()=>{oldClick('seedAgents');renderLab();};$('cbEvolve').onclick=()=>{oldClick('evolveAgents');renderLab();};$('cbClear').onclick=()=>{oldClick('clearAgents');renderLab();};
+}
+function renderLab(){const pool=window.Evolution?.pool||[],el=$('cbEvoGrid'),read=$('cbLabReadout');if(!el)return;if(!pool.length){el.innerHTML='<div class="readout">No population yet.</div>';return}const sorted=pool.slice().sort((a,b)=>(b.fitness||0)-(a.fitness||0));read.innerHTML=`Generation <b>${window.Evolution?.generation||0}</b> · Population <b>${pool.length}</b> · Best fitness <b>${Number(sorted[0]?.fitness||0).toFixed(1)}</b>`;el.innerHTML=sorted.slice(0,12).map(a=>`<div class="cb-evo-item"><b>${esc(a.name||'POLICY')}</b><span>LV ${a.level||1} · FIT ${Number(a.fitness||0).toFixed(1)} · EXP ${a.experience||0}</span></div>`).join('')}
+function start(){build();app()?.subscribe?.(()=>{sync();renderLab()});document.addEventListener('cb:immersive-selection',sync);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
