@@ -1,0 +1,21 @@
+/* CARDIAC//BREACH — functional feature layer for immersive command center */
+#cbFeatureTray{position:absolute;left:18px;bottom:116px;z-index:35;display:flex;gap:7px;pointer-events:auto}
+#cbFeatureTray button,.cb-feature-panel button{font:700 8px/1 Inter,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#a9d8d2;background:rgba(4,16,21,.82);border:1px solid rgba(83,224,213,.22);padding:8px 10px;cursor:pointer;clip-path:polygon(4% 0,96% 0,100% 18%,100% 82%,96% 100%,4% 100%,0 82%,0 18%)}
+#cbFeatureTray button:hover,.cb-feature-panel button:hover{color:#ddfff8;border-color:rgba(110,239,227,.58);box-shadow:0 0 22px rgba(78,225,212,.12)}
+#cbFeatureTray button.danger{color:#ffc2ca;border-color:rgba(255,94,115,.28)}
+.cb-feature-panel{position:absolute;z-index:40;top:82px;left:22px;width:min(370px,calc(100vw - 44px));max-height:calc(100vh - 180px);overflow:auto;padding:15px;background:rgba(3,10,15,.9);border:1px solid rgba(77,224,214,.25);backdrop-filter:blur(18px);clip-path:polygon(1.5% 0,98% 0,100% 3%,100% 97%,98.5% 100%,1.5% 100%,0 97%,0 3%);box-shadow:0 20px 70px rgba(0,0,0,.55);display:none;pointer-events:auto}
+.cb-feature-panel.open{display:block;animation:cbFeatureIn .22s ease}
+@keyframes cbFeatureIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.cb-feature-panel .head{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}.cb-feature-panel .kicker{color:#55999b;font-size:7px;letter-spacing:.2em}.cb-feature-panel h3{margin:4px 0 0;color:#e4fff9;font-size:17px;letter-spacing:.03em}.cb-feature-panel .close{border:none!important;background:none!important;padding:3px 6px!important;color:#6fa19f!important;box-shadow:none!important}
+.cb-feature-panel .row{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center;padding:9px 0;border-top:1px solid rgba(86,220,211,.08)}
+.cb-feature-panel label{color:#6f9898;font-size:8px;letter-spacing:.14em}.cb-feature-panel select,.cb-feature-panel input{width:100%;box-sizing:border-box;background:#061117;color:#d7efeb;border:1px solid rgba(83,224,213,.18);padding:8px;border-radius:0;outline:none}.cb-feature-panel .wide{grid-column:1/-1}
+.cb-feature-panel .stack{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px}.cb-feature-panel .stack.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.cb-feature-panel .readout{margin-top:10px;padding:10px;border:1px solid rgba(83,224,213,.10);background:rgba(8,23,29,.45);color:#79a9a7;font-size:8px;line-height:1.5}.cb-feature-panel .readout b{color:#dbf7f1}
+#cbFeatureStatus{position:absolute;right:18px;bottom:116px;z-index:35;max-width:280px;color:#6fa09e;font-size:8px;letter-spacing:.12em;text-align:right;pointer-events:none}
+#cbFeatureStatus strong{color:#d8ef72}
+.cb-feature-modal{position:absolute;inset:70px 18px 120px;z-index:45;display:none;pointer-events:auto}.cb-feature-modal.open{display:block}
+.cb-feature-modal .modal-inner{height:100%;overflow:auto;padding:20px;background:rgba(2,8,12,.95);border:1px solid rgba(87,225,214,.26);backdrop-filter:blur(20px);box-shadow:0 30px 100px rgba(0,0,0,.65);clip-path:polygon(1% 0,99% 0,100% 2%,100% 98%,99% 100%,1% 100%,0 98%,0 2%)}
+.cb-feature-modal .close{float:right}
+.cb-evo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}.cb-evo-item{padding:10px;border:1px solid rgba(83,224,213,.10);background:rgba(8,20,26,.55)}.cb-evo-item b{display:block;color:#e4fff9;font-size:10px}.cb-evo-item span{display:block;color:#668f91;font-size:7px;margin-top:4px}
+@media(max-width:900px){#cbFeatureTray{left:10px;bottom:104px;flex-wrap:wrap;max-width:260px}.cb-feature-panel{top:72px;left:10px;width:min(330px,calc(100vw - 20px))}.cb-feature-modal{inset:64px 10px 98px}}
+@media(max-width:650px){#cbFeatureTray{bottom:98px}.cb-feature-panel{top:70px;max-height:calc(100vh - 175px)}#cbFeatureStatus{right:10px;bottom:100px;max-width:160px;font-size:7px}.cb-feature-modal{inset:60px 7px 95px}.cb-evo-grid{grid-template-columns:1fr}}
