@@ -18,12 +18,19 @@ function syncLegacyTelemetry(){
  if(heroThreat){heroThreat.textContent=threat>=70?'CRITICAL':threat>=42?'ELEVATED':'LOW';heroThreat.dataset.level=threat>=70?'critical':threat>=42?'elevated':'low';}
  document.dispatchEvent(new CustomEvent('cardiac:heart-state',{detail:{severity:threat/100,day,score,viability,inflammation,arrhythmia}}));
 }
+function loadAsset(id,href,tag='link',attr='href'){
+ if(document.getElementById(id))return;
+ const el=document.createElement(tag);el.id=id;el[attr]=href;el.dataset.immersiveRestore='true';
+ if(tag==='script')el.defer=true;document.head.appendChild(el);
+}
 function boot(){
  installLegacyTheme();
  ['day','score','viability','inflammation','arrhythmia'].forEach(id=>{const el=$(id);if(el)new MutationObserver(syncLegacyTelemetry).observe(el,{childList:true,characterData:true,subtree:true});});
  syncLegacyTelemetry();
- if(!document.getElementById('cb-immersive-css')){const link=document.createElement('link');link.id='cb-immersive-css';link.rel='stylesheet';link.href='immersive-command-center.css?v=1';document.head.appendChild(link);}
+ loadAsset('cb-immersive-css','immersive-command-center.css?v=1');
+ loadAsset('cb-feature-css','immersive-feature-restore.css?v=1');
  if(!document.querySelector('script[data-immersive-command-center]')){const script=document.createElement('script');script.src='immersive-command-center.js?v=1';script.dataset.immersiveCommandCenter='true';document.body.appendChild(script);}
+ const wait=()=>{if(document.getElementById('cbImmersive'))loadAsset('cb-feature-js','immersive-feature-restore.js?v=1','script','src');else requestAnimationFrame(wait)};wait();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
