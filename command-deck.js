@@ -6,10 +6,12 @@ function css(id,href){if(document.getElementById(id))return;const l=document.cre
 function boot(){
  document.body.classList.add('cb-immersive');
  document.querySelectorAll('#beginnerGuide,#introOverlay,.cb-immersive-root,#cbFeatureTray,#cbFeaturePanel,#cbFeatureModal,#crisisLayer').forEach(e=>e.remove());
- css('cb-v2-css','immersive-command-center-v2.css?v=4');
- css('cb-v2-compact','immersive-compact-panels.css?v=2');
+ css('cb-v2-css','immersive-command-center-v2.css?v=5');
+ css('cb-v2-compact','immersive-compact-panels.css?v=3');
+ css('cb-heart-bridge-css','immersive-heart-bridge.css?v=1');
  add('cb-v2-js','immersive-command-center-v2.js?v=4');
  add('cb-heart-bridge','immersive-heart-bridge.js?v=1');
+ add('cb-tutorial-sync','immersive-tutorial-sync.js?v=1');
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
