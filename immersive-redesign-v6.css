@@ -1,0 +1,289 @@
+/* CARDIAC//BREACH — V6 visual reset
+ * Visual-only overhaul. Gameplay state/events remain untouched.
+ * Direction: surgical command deck / analog instrument / dark strategy game.
+ */
+:root{
+  --v6-void:#050506;
+  --v6-charcoal:#0d0d10;
+  --v6-panel:#151419;
+  --v6-panel2:#1c1a20;
+  --v6-line:#3a3439;
+  --v6-ivory:#f0e7d7;
+  --v6-muted:#a59d90;
+  --v6-red:#d84a52;
+  --v6-red2:#ff6a67;
+  --v6-burg:#671e27;
+  --v6-amber:#e5ae52;
+  --v6-green:#9bb66a;
+  --v6-shadow:0 28px 90px rgba(0,0,0,.55);
+}
+
+body.cb-immersive{
+  background:var(--v6-void)!important;
+  color:var(--v6-ivory)!important;
+  font-family:"IBM Plex Sans",Inter,system-ui,sans-serif!important;
+}
+body.cb-immersive *{box-sizing:border-box}
+
+.cb-final-immersive{
+  background:
+    radial-gradient(circle at 50% 43%,rgba(216,74,82,.11),transparent 22%),
+    radial-gradient(circle at 50% 110%,rgba(229,174,82,.06),transparent 34%),
+    linear-gradient(180deg,#050506 0%,#0a090b 60%,#040405 100%)!important;
+  color:var(--v6-ivory)!important;
+}
+
+.cb-final-immersive::before{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.01) 1px,transparent 1px);
+  background-size:80px 80px;
+  mask-image:linear-gradient(to bottom,transparent,black 22%,black 78%,transparent);
+}
+
+.ci-scene{background:transparent!important}
+.ci-scene:before{display:none!important}
+.ci-scene:after{
+  background:radial-gradient(circle at center,transparent 42%,rgba(0,0,0,.72) 100%)!important;
+}
+
+/* Architectural framing */
+.ci-scene::before{
+  content:"";
+  position:absolute;inset:26px;
+  border:1px solid rgba(240,231,215,.11);
+  pointer-events:none;z-index:2;
+  clip-path:polygon(0 0,18% 0,18% 4px,82% 4px,82% 0,100% 0,100% 18%,calc(100% - 4px) 18%,calc(100% - 4px) 82%,100% 82%,100% 100%,82% 100%,82% calc(100% - 4px),18% calc(100% - 4px),18% 100%,0 100%,0 82%,4px 82%,4px 18%,0 18%);
+}
+
+.ci-ring{
+  width:min(66vw,920px)!important;
+  height:min(66vw,920px)!important;
+  left:50%!important;top:51%!important;
+  border-radius:50%!important;
+  border:1px solid rgba(240,231,215,.10)!important;
+  box-shadow:0 0 0 34px rgba(103,30,39,.05),0 0 130px rgba(216,74,82,.08) inset!important;
+}
+.ci-grid{
+  width:min(70vw,1000px)!important;
+  background:none!important;
+  border-color:rgba(229,174,82,.10)!important;
+  box-shadow:0 0 80px rgba(0,0,0,.35) inset!important;
+}
+.ci-grid:before{border-color:rgba(229,174,82,.06)!important}
+.ci-grid:after{border-color:rgba(229,174,82,.10)!important}
+
+/* Heart stage — biggest element */
+.ci-heart{
+  left:50%!important;
+  top:53%!important;
+  width:min(73vw,1080px)!important;
+  height:min(78vh,860px)!important;
+  z-index:8!important;
+  filter:drop-shadow(0 0 65px rgba(216,74,82,.16)) drop-shadow(0 25px 70px rgba(0,0,0,.65))!important;
+}
+.ci-heart canvas{filter:saturate(.85) contrast(1.08)!important}
+.ci-heart.flash{animation:v6HeartImpact .65s ease!important}
+@keyframes v6HeartImpact{
+  0%{filter:drop-shadow(0 0 65px rgba(216,74,82,.16))}
+  32%{filter:drop-shadow(0 0 120px rgba(229,174,82,.42)) saturate(1.25) brightness(1.12)}
+  100%{filter:drop-shadow(0 0 65px rgba(216,74,82,.16))}
+}
+
+.ci-anatomy-fallback{
+  width:100%;height:100%;position:relative;
+  display:grid;place-items:center;
+  filter:drop-shadow(0 30px 90px rgba(0,0,0,.62));
+}
+.ci-anatomy-fallback svg{width:min(72vw,780px);height:min(75vh,780px);overflow:visible;filter:drop-shadow(0 0 36px rgba(216,74,82,.20))}
+.ci-anatomy-overlay{
+  position:absolute;left:50%;bottom:8%;transform:translateX(-50%);
+  padding:8px 13px;
+  background:rgba(13,13,16,.72);
+  border:1px solid rgba(240,231,215,.16);
+  letter-spacing:.16em;text-align:center;backdrop-filter:blur(10px);
+}
+.ci-anatomy-overlay span{display:block;color:#81786d;font:700 7px/1.2 "IBM Plex Sans",sans-serif}
+.ci-anatomy-overlay b{display:block;margin-top:4px;color:var(--v6-ivory);font:800 9px/1.2 "IBM Plex Sans",sans-serif}
+
+/* Top telemetry becomes a tiny instrument rail */
+.ci-top{
+  top:16px!important;
+  gap:0!important;
+  left:50%!important;
+  z-index:50!important;
+}
+.ci-top>div{
+  min-width:96px!important;
+  padding:7px 12px!important;
+  background:rgba(13,13,16,.84)!important;
+  border:0!important;
+  border-right:1px solid rgba(240,231,215,.10)!important;
+  clip-path:none!important;
+}
+.ci-top>div:first-child{border-left:2px solid var(--v6-red)}
+.ci-top>div:nth-child(2){border-left:1px solid rgba(240,231,215,.08)}
+.ci-top small{color:#756e66!important;letter-spacing:.19em!important;font-size:6px!important}
+.ci-top b{color:var(--v6-ivory)!important;font-size:14px!important;font-family:"IBM Plex Mono",monospace!important}
+
+.ci-alert{
+  right:22px!important;top:17px!important;
+  background:transparent!important;
+  border:0!important;
+  color:var(--v6-amber)!important;
+  padding:7px 10px!important;
+  font:800 8px/1 "IBM Plex Mono",monospace!important;
+}
+.ci-alert[data-level=stable]{color:var(--v6-green)!important}
+.ci-alert[data-level=warning]{color:var(--v6-amber)!important}
+.ci-alert[data-level=critical]{color:var(--v6-red2)!important;animation:v6Blink 1s steps(2) infinite}
+@keyframes v6Blink{50%{opacity:.42}}
+
+/* Utility strip: small, quiet, closed by default */
+.ci-tools{
+  left:24px!important;top:18px!important;
+  gap:4px!important;z-index:52!important;
+  max-width:370px;
+}
+.ci-tools button{
+  padding:7px 9px!important;
+  border:1px solid rgba(240,231,215,.13)!important;
+  border-radius:0!important;
+  background:rgba(15,14,17,.84)!important;
+  color:#a9a092!important;
+  font:800 7px/1 "IBM Plex Mono",monospace!important;
+  letter-spacing:.12em!important;
+  clip-path:none!important;
+  box-shadow:none!important;
+}
+.ci-tools button:hover{color:var(--v6-ivory)!important;border-color:rgba(229,174,82,.46)!important;background:#1a171a!important;box-shadow:0 0 0 1px rgba(229,174,82,.10) inset!important}
+
+/* Tiny expandable consoles */
+.ci-panel{
+  left:24px!important;top:58px!important;
+  width:296px!important;
+  max-height:calc(100vh - 150px)!important;
+  z-index:80!important;
+}
+.ci-panel-inner{
+  padding:14px!important;
+  background:rgba(17,16,20,.96)!important;
+  border:1px solid rgba(240,231,215,.16)!important;
+  border-left:2px solid var(--v6-red)!important;
+  border-radius:2px!important;
+  box-shadow:var(--v6-shadow)!important;
+  clip-path:none!important;
+}
+.ci-head{border-bottom:1px solid rgba(240,231,215,.08);padding-bottom:10px}
+.ci-head small{color:#756f67!important;font:700 6px/1 "IBM Plex Mono",monospace!important;letter-spacing:.16em!important}
+.ci-head h2{color:var(--v6-ivory)!important;font:700 18px/1.1 Georgia,serif!important;letter-spacing:-.01em}
+.ci-panel button{
+  background:#1b181c!important;border-color:rgba(240,231,215,.14)!important;color:#b9b0a4!important;
+  border-radius:1px!important;clip-path:none!important;
+}
+.ci-panel button:hover{background:#242026!important;color:var(--v6-ivory)!important;border-color:rgba(229,174,82,.48)!important}
+.ci-panel select,.ci-panel input{
+  background:#0d0d10!important;border:1px solid rgba(240,231,215,.14)!important;color:var(--v6-ivory)!important;border-radius:0!important;
+}
+.ci-metrics>div{background:#111013!important;border:1px solid rgba(240,231,215,.08)!important}
+.ci-metrics span{color:#777067!important}
+.ci-metrics b{color:var(--v6-ivory)!important}
+.ci-metrics b.good{color:var(--v6-green)!important}
+.ci-metrics i{background:#29252a!important}
+.ci-metrics i em{background:linear-gradient(90deg,var(--v6-burg),var(--v6-red))!important}
+.ci-region{background:#0f0e11!important;border-color:rgba(240,231,215,.08)!important}
+.ci-region b{color:var(--v6-ivory)!important}
+.ci-region pre{color:#91897d!important}
+.ci-line{border-bottom-color:rgba(240,231,215,.07)!important}
+.ci-line b{color:var(--v6-ivory)!important}
+.ci-line span{color:#857d73!important}
+
+/* Bottom surgical tray */
+.ci-dock{
+  left:50%!important;bottom:18px!important;
+  gap:5px!important;z-index:55!important;
+  padding:6px 8px 5px;
+  background:rgba(13,12,14,.84);
+  border:1px solid rgba(240,231,215,.12);
+  box-shadow:0 16px 45px rgba(0,0,0,.5);
+}
+.ci-ability{
+  width:73px!important;height:64px!important;
+  padding:7px 5px!important;
+  background:#19171b!important;
+  border:1px solid rgba(240,231,215,.10)!important;
+  border-radius:1px!important;
+  clip-path:none!important;
+  color:#a79d91!important;
+}
+.ci-ability b{
+  width:22px!important;height:22px!important;
+  border-color:#635e59!important;
+  color:#c6bcb0!important;
+  font-size:11px!important;
+}
+.ci-ability span{font-size:6px!important;letter-spacing:.08em!important;color:#c8bdb0!important}
+.ci-ability small{color:#756d65!important}
+.ci-ability:hover{background:#211d21!important;border-color:rgba(229,174,82,.44)!important;color:var(--v6-amber)!important;transform:translateY(-3px)}
+.ci-ability.armed{background:#3a171d!important;border-color:var(--v6-red)!important;color:#ffd8d3!important;box-shadow:0 -8px 28px rgba(216,74,82,.12)!important}
+.ci-ability.armed b{border-color:var(--v6-red2)!important;color:#fff0ec!important}
+.ci-end{
+  width:118px!important;height:54px!important;
+  margin-left:4px!important;
+  background:linear-gradient(180deg,#6b222c,#3e141b)!important;
+  border:1px solid rgba(255,106,103,.52)!important;
+  color:#ffe6dc!important;
+  border-radius:1px!important;clip-path:none!important;
+}
+.ci-end:hover{filter:brightness(1.13);box-shadow:0 0 28px rgba(216,74,82,.22)!important}
+.ci-end b{font:800 8px/1 "IBM Plex Mono",monospace!important;letter-spacing:.16em!important}
+.ci-end small{color:#e3a59f!important;font-size:6px!important}
+
+/* Crisis: compact emergency instrument, not giant modal */
+.ci-crisis{inset:0!important;z-index:90!important;background:rgba(4,3,5,.34);backdrop-filter:blur(3px)}
+.ci-crisis-inner{
+  position:absolute!important;right:24px;top:94px;
+  width:360px!important;
+  padding:15px!important;
+  background:rgba(24,12,15,.97)!important;
+  border:1px solid rgba(255,106,103,.34)!important;
+  border-left:2px solid var(--v6-red)!important;
+  box-shadow:var(--v6-shadow)!important;
+  clip-path:none!important;
+}
+.ci-crisis-inner h2{font:700 21px/1.05 Georgia,serif!important;color:#fff0eb!important;margin:7px 0!important}
+.ci-crisis-inner p{color:#c79f9a!important;font-size:9px!important}
+.ci-crisis-inner>div{grid-template-columns:1fr!important;gap:5px!important;margin-top:12px!important}
+.ci-crisis-inner>div button{min-height:auto!important;padding:10px!important;background:#211317!important;border-color:rgba(255,106,103,.16)!important;clip-path:none!important}
+.ci-crisis-inner>div button:hover{background:#32171d!important;border-color:rgba(255,106,103,.45)!important}
+.ci-crisis-inner>div button b{font-size:8px!important}
+.ci-crisis-inner>div button span{font-size:7px!important;color:#b79590!important}
+.ci-crisis-inner em{color:#ffaaa7!important;font:700 6px/1 "IBM Plex Mono",monospace!important}
+
+.ci-toast{
+  top:13%!important;padding:7px 11px!important;
+  background:#151216!important;border:1px solid rgba(229,174,82,.3)!important;
+  color:var(--v6-ivory)!important;font:800 7px/1 "IBM Plex Mono",monospace!important;
+}
+
+/* Hide stale decorative telemetry so the heart remains the star */
+#ciTarget{top:17%!important}
+
+@media(max-width:900px){
+  .ci-heart{width:96vw!important;height:72vh!important;top:50%!important}
+  .ci-panel{left:12px!important;top:76px!important;width:280px!important}
+  .ci-crisis-inner{right:12px!important;left:12px!important;top:auto!important;bottom:96px!important;width:auto!important}
+  .ci-dock{max-width:calc(100vw - 16px)!important;overflow-x:auto!important}
+}
+@media(max-width:600px){
+  .ci-tools{left:8px!important;top:52px!important;max-width:250px!important}
+  .ci-top>div{min-width:70px!important}
+  .ci-heart{width:108vw!important;height:65vh!important;top:49%!important}
+  .ci-anatomy-fallback svg{width:92vw!important;height:64vh!important}
+  .ci-panel{left:8px!important;top:92px!important;width:calc(100vw - 16px)!important;max-height:calc(100vh - 185px)!important}
+  .ci-dock{bottom:8px!important}
+  .ci-ability{width:60px!important;height:62px!important}
+  .ci-end{width:104px!important}
+}

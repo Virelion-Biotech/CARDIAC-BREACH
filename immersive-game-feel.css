@@ -1,0 +1,59 @@
+/* CARDIAC//BREACH — game-native panel motion + interaction feel */
+body.cb-immersive .ci-panel{
+  display:block!important;
+  visibility:hidden;
+  opacity:0;
+  pointer-events:none;
+  transform:translate3d(-28px,0,0) scale(.97);
+  transform-origin:18px 50%;
+  filter:blur(2px) brightness(.7);
+  transition:opacity .22s cubic-bezier(.16,1,.3,1),transform .3s cubic-bezier(.16,1,.3,1),filter .3s ease,visibility 0s linear .3s;
+}
+body.cb-immersive .ci-panel.open{
+  visibility:visible;
+  opacity:1;
+  pointer-events:auto;
+  transform:translate3d(0,0,0) scale(1);
+  filter:none;
+  transition-delay:0s;
+}
+body.cb-immersive .ci-panel.open .ci-panel-inner{
+  animation:panelBoot .34s cubic-bezier(.16,1,.3,1) both;
+}
+body.cb-immersive .ci-panel-inner:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,.025) 48%,transparent 51%);
+  transform:translateY(-120%);
+}
+body.cb-immersive .ci-panel.open .ci-panel-inner:before{animation:scanPass .5s ease-out .06s both}
+@keyframes panelBoot{
+  0%{transform:perspective(800px) rotateY(7deg) translateX(-10px);opacity:.5}
+  100%{transform:perspective(800px) rotateY(0) translateX(0);opacity:1}
+}
+@keyframes scanPass{0%{transform:translateY(-120%)}100%{transform:translateY(120%)}}
+body.cb-immersive .ci-panel button,
+body.cb-immersive .ci-tools button,
+body.cb-immersive .ci-ability,
+body.cb-immersive .ci-end{
+  transition:transform .14s cubic-bezier(.2,.9,.3,1),filter .14s ease,box-shadow .14s ease,border-color .14s ease;
+}
+body.cb-immersive .ci-panel button:hover,
+body.cb-immersive .ci-tools button:hover,
+body.cb-immersive .ci-ability:hover,
+body.cb-immersive .ci-end:hover{transform:translateY(-2px);filter:brightness(1.12)}
+body.cb-immersive .ci-panel button:active,
+body.cb-immersive .ci-tools button:active,
+body.cb-immersive .ci-ability:active,
+body.cb-immersive .ci-end:active{transform:translateY(1px) scale(.985);filter:brightness(.92)}
+body.cb-immersive .ci-ability.armed{animation:abilityArm .55s cubic-bezier(.16,1,.3,1) both}
+@keyframes abilityArm{0%{transform:translateY(8px) scale(.93);opacity:.55}60%{transform:translateY(-3px) scale(1.04)}100%{transform:translateY(0) scale(1);opacity:1}}
+body.cb-immersive .ci-crisis{opacity:0;visibility:hidden;transform:scale(.985) translateY(10px);transition:opacity .2s ease,transform .28s cubic-bezier(.16,1,.3,1),visibility 0s linear .28s}
+body.cb-immersive .ci-crisis.open{opacity:1;visibility:visible;transform:scale(1) translateY(0);transition-delay:0s}
+body.cb-immersive .ci-crisis-inner{animation:crisisLock .42s cubic-bezier(.16,1,.3,1) both}
+@keyframes crisisLock{0%{transform:translateY(16px) scale(.96);opacity:.2}100%{transform:translateY(0) scale(1);opacity:1}}
+body.cb-immersive .ci-toast.show{animation:toastSnap .22s cubic-bezier(.16,1,.3,1) both}
+@keyframes toastSnap{0%{filter:blur(3px);opacity:0;transform:translate(-50%,10px)}100%{filter:none;opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion:reduce){body.cb-immersive .ci-panel,body.cb-immersive .ci-crisis,body.cb-immersive .ci-panel.open .ci-panel-inner,body.cb-immersive .ci-panel.open .ci-panel-inner:before,body.cb-immersive .ci-ability.armed{animation:none!important;transition:none!important}}

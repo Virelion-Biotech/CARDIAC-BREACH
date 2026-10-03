@@ -1,0 +1,36 @@
+{
+  "version": "1.3",
+  "philosophy": {
+    "readability": "silhouette first, detail second",
+    "lighting": "consistent upper-left key light",
+    "palette": "near-monochrome base with state accents",
+    "scale": "design at 2x target size, display down",
+    "motion": "small continuous motion; strong motion reserved for state changes",
+    "state": "every important state has a distinct shape, not only a color"
+  },
+  "atlases": {
+    "agent-icons": {
+      "source": "agent-icons.svg",
+      "logicalFrame": [128, 128],
+      "frames": {
+        "stabilizer": 0,
+        "regenerator": 1,
+        "immune": 2,
+        "vascular": 3,
+        "maturation": 4,
+        "electrical": 5
+      }
+    },
+    "scenarios": {"source": "scenarios.svg", "panels": 5},
+    "tissue-states": {"source": "tissue-states.svg", "panels": 5},
+    "events": {"source": "events.svg", "panels": 3}
+  },
+  "rules": [
+    "No two agent silhouettes may be interchangeable at small size.",
+    "Do not encode good/bad using color alone; pair color with shape and motion.",
+    "Keep icon geometry bold enough to survive a 32-44px UI display.",
+    "Use texture and tiny geometry as secondary detail, never as primary information.",
+    "Reserve animation spikes, glow and screen emphasis for player-caused or simulation-critical changes.",
+    "Scenario art should communicate the dominant failure mode before the player reads its label."
+  ]
+}
