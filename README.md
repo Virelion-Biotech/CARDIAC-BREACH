@@ -4,6 +4,21 @@
 
 The player sees crises, limited interventions, spatial consequences and a collapsing heart. The simulation underneath is deliberately more detailed than the UI exposes. It is a fictional educational/entertainment model, not a biological intervention tool.
 
+
+<!-- VALIDATION_PRODUCT_STATUS:BEGIN -->
+## Validation and product completion status
+
+**Reviewed 2026-10-14; implementation base `5db01e65851a`.** **Status: Fictional game/software QA; biomedical validation not a product claim.** This is an evidence-backed scope assessment, not a percentage-complete estimate or a declaration that the product is finished.
+
+| Area | Current evidence / remaining gate |
+|---|---|
+| Software / operational checks | Repository implementation/planning evidence only; no fresh runtime qualification was performed in this documentation audit. |
+| Scientific or domain evidence | The browser game has a synthetic cardiac model and build/unit/browser-test workflow. Its player outcomes are fiction, not patient predictions or physiological validation evidence. |
+| Remaining for the declared product scope | Complete representative browser/device/accessibility and player-usability QA; verify save/recovery, balance and performance over long sessions; review medical wording for educational accuracy while keeping fictional boundaries; qualify deployment/update behavior. |
+
+Evidence and limits: [repository report](README.md). The [organization status index](https://github.com/Virelion-Biotech/Virelion-HeartTwin/blob/main/docs/STACK_VALIDATION_STATUS.md) separates software, numerical, data-readiness and empirical qualification. Code/schema execution or a completed download is not a substitute for endpoint-specific validation.
+<!-- VALIDATION_PRODUCT_STATUS:END -->
+
 ## Current player loop
 
 **Crisis → one critical move → end turn → consequence → next crisis**
